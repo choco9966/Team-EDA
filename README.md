@@ -6,7 +6,7 @@ Frame동아리 TEAM-EDA 스터디 자료모음
 * 참고 사이트 (https://blog.naver.com/choco_9966)
 
 * 스터디 주제
-데이터를 분석하기에 앞서서 시각화 및 통계적인 분석을 통해 데이터를 가공하고 이해하는것을 주 목적으로 진행하고 실습으로 kaggle 대회를 이용해서 분석까지 진행해 볼 계획.
+데이터를 분석하기에 앞서서 시각화 및 통계적인 분석을 통해 데이터를 가공하고 이해하는것을 주 목적으로 진행하고 실습으로 kaggle 대회를 이용해서 분석까지 진행해 볼 계획인 스터디입니다.
 
 
 |요일   |주제   |이론   |코드   |
@@ -24,4 +24,3 @@ Frame동아리 TEAM-EDA 스터디 자료모음
 |2018.05.25(금)|kaggle - Rossmann-EDA(2)|[발표자료](https://blog.naver.com/choco_9966/221236770723)|[발표자료](https://blog.naver.com/choco_9966/221236770723)
 |2018.06.01(금)|kaggle - Rossmann-Modeling|[발표자료](https://blog.naver.com/choco_9966/221236770723)|[발표자료](https://blog.naver.com/choco_9966/221236770723)
 
-## Rossamann Store Sales
