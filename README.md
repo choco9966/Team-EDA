@@ -12,7 +12,7 @@ Frame동아리 TEAM-EDA 스터디 자료모음
 |요일   |주제   |이론   |코드   |
 |---|---|---|---|
 |2018.03.20(화)|팀결성|
-|2018.03.25(일)|EDA 소개|[발표자료](https://blog.naver.com/choco_9966/221236770723)|[발표자료](https://blog.naver.com/choco_9966/221236770723)
+|2018.03.25(일)|EDA|[발표자료](https://blog.naver.com/choco_9966/221236770723)|[발표자료](https://blog.naver.com/choco_9966/221236770723)
 |2018.04.01(일)|결측치 다루기|[발표자료](https://blog.naver.com/choco_9966/221241322294)|[발표자료](https://blog.naver.com/choco_9966/221236770723)
 |2018.04.06(금)|데이터 시각화|[발표자료](https://blog.naver.com/choco_9966/221241322294)|[발표자료](https://blog.naver.com/choco_9966/221236770723)
 |2018.04.13(금)|선형 회귀분석|[발표자료](https://blog.naver.com/choco_9966/221241322294)|[발표자료](https://blog.naver.com/choco_9966/221236770723)
