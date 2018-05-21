@@ -20,7 +20,8 @@ Frame동아리 TEAM-EDA 스터디 자료모음
 |2018.05.04(금)|추후 일정 회의||
 ||의사결정나무|[발표자료](https://blog.naver.com/choco_9966/221253617024)|[발표자료](https://blog.naver.com/choco_9966/221236770723)
 |2018.05.11(금)|SVM - support vectore machine|[발표자료](https://blog.naver.com/choco_9966/221236770723)|[발표자료](https://blog.naver.com/choco_9966/221236770723)
-|2018.05.18(금)|kaggle - Rossmann-EDA(1)|[발표자료](https://blog.naver.com/choco_9966/221236770723)|[발표자료](https://blog.naver.com/choco_9966/221236770723)
+|2018.05.12(토)|추후 일정 회의||
+|2018.05.18(금)|kaggle - Rossmann-EDA(1)|[발표자료](https://www.kaggle.com/chocozzz/rossmann-eda/notebook)|[발표자료](https://blog.naver.com/choco_9966/221236770723)
 |2018.05.25(금)|kaggle - Rossmann-EDA(2)|[발표자료](https://blog.naver.com/choco_9966/221236770723)|[발표자료](https://blog.naver.com/choco_9966/221236770723)
 |2018.06.01(금)|kaggle - Rossmann-Modeling|[발표자료](https://blog.naver.com/choco_9966/221236770723)|[발표자료](https://blog.naver.com/choco_9966/221236770723)
 
