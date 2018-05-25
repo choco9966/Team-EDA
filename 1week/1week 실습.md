@@ -235,3 +235,8 @@ pclass사진을 통해 빨간색으로 동그라미 친 구명보트와 가까�
 주황색:pclass=1 , 초록색:pclass=2 , 파란색:pclass=3
 ```
 ![](https://choco9966.github.io/Team-EDA/1week/image/pclass.PNG)
+
+```
+embarked 위치를 확인함으로써 ticket비용, pclass 위치가 다를거라는 예상을 할 수 있음.
+```
+![](https://choco9966.github.io/Team-EDA/1week/image/embarked.png)
