@@ -231,7 +231,7 @@ cabin사진을 통해 대략적인 구조확인
 ![](https://choco9966.github.io/Team-EDA/1week/image/cabin.PNG)
 
 
-*출처:https://github.com/KaggleBreak/walkingkaggle/blob/master/tutorial/titanic/%EC%BA%90%EA%B8%80%EB%BD%80%EA%B0%9C%EA%B8%B0(%ED%83%80%EC%9D%B4%ED%83%80%EB%8B%89)_%EC%B5%9C%EC%A2%85.pdf*
+*출처: https://github.com/KaggleBreak/walkingkaggle/blob/master/tutorial/titanic/%EC%BA%90%EA%B8%80%EB%BD%80%EA%B0%9C%EA%B8%B0(%ED%83%80%EC%9D%B4%ED%83%80%EB%8B%89)_%EC%B5%9C%EC%A2%85.pdf*
 ```
 pclass사진을 통해 빨간색으로 동그라미 친 구명보트와 가까운 위치의 숙박사람들이 생존률이 높을거라는걸 예상가능.
 주황색:pclass=1 , 초록색:pclass=2 , 파란색:pclass=3
@@ -239,11 +239,12 @@ pclass사진을 통해 빨간색으로 동그라미 친 구명보트와 가까�
 ![](https://choco9966.github.io/Team-EDA/1week/image/pclass.PNG)
 
 
-*출처:https://github.com/KaggleBreak/walkingkaggle/blob/master/tutorial/titanic/%EC%BA%90%EA%B8%80%EB%BD%80%EA%B0%9C%EA%B8%B0(%ED%83%80%EC%9D%B4%ED%83%80%EB%8B%89)_%EC%B5%9C%EC%A2%85.pdf*
+*출처: https://github.com/KaggleBreak/walkingkaggle/blob/master/tutorial/titanic/%EC%BA%90%EA%B8%80%EB%BD%80%EA%B0%9C%EA%B8%B0(%ED%83%80%EC%9D%B4%ED%83%80%EB%8B%89)_%EC%B5%9C%EC%A2%85.pdf*
 ```
 embarked 위치를 확인함으로써 ticket비용, pclass 위치가 다를거라는 예상을 할 수 있음.
 ```
 ![](https://choco9966.github.io/Team-EDA/1week/image/embarked.png)
 
 
-*출처:https://rstudio-pubs-static.s3.amazonaws.com/237185_55be842b64c3449cb28d247ecfa9a410.html*
+*출처:
+https://rstudio-pubs-static.s3.amazonaws.com/237185_55be842b64c3449cb28d247ecfa9a410.html*
