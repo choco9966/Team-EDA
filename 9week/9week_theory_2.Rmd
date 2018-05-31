@@ -1,0 +1,394 @@
+---
+title: "9week_theory_2"
+author: "김현우,박주연,이주영,이지예,주진영,홍정아"
+date: "2018년 5월 30일"
+output: html_document
+---
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#Sys.setlocale('LC_ALL','C')
+library(readr)
+library(dplyr)
+library(zoo)
+library(forecast)
+library(ggplot2)
+```
+
+# Overview
+
+The training data set for the Rossman Store Sales consists of sales data
+for a set of 1115 stores across 942 days.  If we multiply those two numbers
+together we would would expect to find a data set with 1050330 observations,
+however, there are in fact only 1017209 observations in the training set.
+
+If we load the training data and plot the number of stores reporting data for
+each date in the training time series, we can see that there is a 6 month gap
+where we have a smaller number of stores reporting sales revenue. In the 
+description of the data set it was said that "some stores were temporarily 
+closed for refurbishment" so we can attribute the missing data to the stores
+being closed within this 6 month period.  
+
+The problem with this gap in the data is that it makes it difficult to 
+use the *forecast* package as the methods in that package don't deal
+well with gaps in the time series.  This leaves us with two choices:
+either to artificially make the gap disappear and make a continuous
+time series with available data points or to impute sales figures 
+during the renovation period to have a complete time series of 942 days
+as with other stores that did not undergo renovation.  This markdown 
+file is looking at this second approach.
+
+
+```{r, load_train_data, warning=FALSE}
+train <- read_csv("train.csv", col_types=list(
+  Store = col_integer(),
+  DayOfWeek= col_integer(),
+  Date = col_date(),
+  Sales = col_integer(),
+  Customers = col_integer(),
+  Open = col_integer(),
+  Promo = col_integer(),
+  StateHoliday = col_character(),
+  SchoolHoliday = col_integer()))
+```
+
+
+```{r, store_count_by_date}
+by_Date <- train %>% group_by(Date) %>% summarise(NumStores=n())
+ggplot(by_Date, aes(Date,NumStores)) + geom_line()
+```
+
+
+From the above figure, we can see that the gap occurs at the beginning of July
+2014 and runs until the end of the year.  To confirm the actual dates of the 
+beginning and end we can look at the data around the beginning and end of this 
+period.
+
+```{r, gap_head}
+by_Date_Gap <- by_Date[by_Date$Date %in% 
+                         seq(as.Date("2014-06-30"),as.Date("2015-01-01"),by="day"),]
+head(by_Date_Gap,3)
+```
+
+```{r, gap_tail}
+tail(by_Date_Gap,3)
+```
+
+# Identifying the Stores with Missing Data
+
+If we look at stores reporting sales at the beginning of the gap on *2014-7-1* 
+and subtract this from the list of all stores, we can find which stores have 
+missing data.
+
+```{r, missing_stores}
+all_stores <- unique(train$Store)
+stores_reporting <- train$Store[train$Date == as.Date("2014-7-1")]
+missing_stores <- all_stores[!(all_stores %in% stores_reporting)]
+missing_stores
+```
+
+Picking the first store in the list, Store 13, and plotting the data
+over time, we can clearly see the gap in the time series.
+
+```{r, sales_store13, fig.height=6, fig.width=8}
+store13 <- subset(train, Store==13)
+ggplot(store13, aes(Date,Sales)) +
+  geom_line() +
+  geom_smooth() + 
+  ggtitle("Revenue for Store 13 over time")
+```
+
+Given our above list of stores with missing data, we want to confirm if
+this list is constant over the period of the gap.  The simples strategy 
+is to create a new list for each additional day in the period and check 
+the set difference with our original list.  If the difference is always
+zero, then we have a constant list of stores with missing data.
+
+```{r, checking_missing_stores}
+for (date in seq(as.Date("2014-7-2"),as.Date("2014-12-31"),by="day")) {
+  stores_reporting <- train$Store[train$Date == date]
+  missing_on_date <- all_stores[!(all_stores %in% stores_reporting)]
+  if (length(setdiff(missing_on_date,missing_stores)) > 0) {
+    cat("Date:",date," Difference in missing stores",setdiff(missing_on_date,missing_stores))
+  } 
+}
+```
+
+So far we have identified a gap of six months of missing data for 180 stores, 
+however, there is one other missing data point.  If you look closely at the 
+original plot of the number of stores reporting sales versus time, you  will 
+see a small down turn at the very beginning.  We can confirm this by checking
+if there are any missing stores on the first day of the time series.
+
+```{r, additional_missing_stores}
+stores_reporting <- train$Store[train$Date == as.Date("2013-1-1")]
+additional_missing_store <- all_stores[!(all_stores %in% stores_reporting)]
+additional_missing_store
+```
+
+So only one store is missing data and given that itis New Year's day, we could 
+create a single row for this store with zeros for Sales, Customers, etc. 
+Alternatively, we can use a majority vote to basically say that this store
+follows the same pattern as majority of other stores on that day.  Since this 
+approach of using a majority vote will be used later to impute part of
+the missing data in the large 6 month gap we have found, we will use it
+here as well.  Once we have the missing row, we bind it to the initial 
+training set and continue with this.
+
+```{r, impute_missing_row}
+date <- as.Date("2013-1-1")
+day_of_week <- unique(train$DayOfWeek[train$Date == date])
+sales <- as.numeric(names(which.max(table(train$Sales[train$Date == date]))))
+customers <- as.numeric(names(which.max(table(train$Customers[train$Date == date]))))
+open <- as.numeric(names(which.max(table(train$Open[train$Date == date]))))
+promo <- as.numeric(names(which.max(table(train$Promo[train$Date == date]))))
+state_holiday <- names(which.max(table(train$StateHoliday[train$Date == date])))
+school_holiday <- as.numeric(names(which.max(table(train$SchoolHoliday[train$Date == date]))))
+
+missing_row <- data.frame(Store = additional_missing_store,
+                          DayOfWeek = day_of_week,
+                          Date = date,
+                          Sales = sales,
+                          Customers = customers,
+                          Open = open,
+                          Promo = promo,
+                          StateHoliday = state_holiday,
+                          SchoolHoliday = school_holiday)
+
+train <- rbind(train,missing_row)
+```
+
+# Imputing Missing Values
+
+So we have a list of stores and the dates for which we are missing 
+data.  We now want to construct a data frame for the missing data and 
+insert it into the existing training data set. 
+
+As has been observed elsewhere, due to the large variations in the
+sales data, we can generally get better results working with the log
+of the sales values and then converting back for the final submission.
+For this reason we will add an extra column with the log of the sales
+values and impute values for stores in our missing data set.
+
+```{r, create_logSales}
+train$logSales <- log(train$Sales+1)
+```
+
+The first step will be to construct an empty data frame of the 
+size we require to impute our missing data.  One item that we
+can fill in right away is the Date column.  We essentially need
+to repeat the dates for the days in the gap by the number of 
+stores for which we are missing data.
+
+```{r, create_missing_dataframe}
+gap <- seq(as.Date("2014-7-1"),as.Date("2014-12-31"),by="day")
+n_missing <- length(gap)*length(missing_stores)
+missing_df <- data.frame(Store = integer(n_missing),
+                         DayOfWeek = integer(n_missing),
+                         Date = rep(gap,length(missing_stores)),
+                         Sales = integer(n_missing),
+                         Customers = integer(n_missing),
+                         Open = integer(n_missing),
+                         Promo = integer(n_missing),
+                         StateHoliday = character(n_missing),
+                         SchoolHoliday = integer(n_missing),
+                         logSales = numeric(n_missing),
+                         stringsAsFactors=FALSE)
+```
+
+We are mainily interested in imputing values for the Sales and Customer
+columns but there are also other indicators that need to be added such as 
+whether the store is Open, whether a Promo is on, state and school holidays. 
+For each of these latter indicators, we will use a majority vote to impute
+values for the missing data. In other words, if the majority of stores are 
+open we will assume that this store is open, if the majority of stores are
+having a promo we will assume this store is having a promo, etc.
+
+```{r, fill_missing_store_data}
+for (date in gap) {
+  missing_df$Store[missing_df$Date == date] <- missing_stores
+  
+  day_of_week <- unique(train$DayOfWeek[train$Date == date])
+  missing_df$DayOfWeek[missing_df$Date == date] <- rep(day_of_week, length(missing_stores))
+  
+  missing_df$Sales[missing_df$Date == date] <- rep(NA, length(missing_stores))
+
+  missing_df$Customers[missing_df$Date == date] <- rep(NA, length(missing_stores))
+  
+  open <- as.numeric(names(which.max(table(train$Open[train$Date == date]))))
+  missing_df$Open[missing_df$Date == date] <- rep(open, length(missing_stores))
+  
+  promo <- as.numeric(names(which.max(table(train$Promo[train$Date == date]))))
+  missing_df$Promo[missing_df$Date == date] <- rep(promo, length(missing_stores))
+
+  state_holiday <- names(which.max(table(train$StateHoliday[train$Date == date])))
+  missing_df$StateHoliday[missing_df$Date == date] <- rep(state_holiday, length(missing_stores))
+
+  school_holiday <- as.numeric(names(which.max(table(train$SchoolHoliday[train$Date == date]))))
+  missing_df$SchoolHoliday[missing_df$Date == date] <- rep(school_holiday, length(missing_stores))
+  
+  missing_df$logSales[missing_df$Date == date] <- rep(NA, length(missing_stores))
+
+}
+
+head(missing_df)
+```
+
+Now that we have our data frame for the missing store data, we will
+bind this to existing training set and re-order everything according
+to date.
+
+```{r, bind_missing_store_data}
+train_filled_gap <- rbind(train,missing_df)
+train_filled_gap <- train_filled_gap[order(train_filled_gap$Date),]
+```
+
+Finally, using the existing Sales, Customer and logSales values we
+can impute values for the missing time period.  To do this we will 
+use the median of existing Sales and Customer data but contrained
+to the day of the week, whether a promo is running or not, and 
+obviously whether the store is open or not.
+
+```{r, impute_sales}
+train_filled_gap <- train_filled_gap %>% 
+                      group_by(Store, DayOfWeek, Open, Promo) %>%
+                      mutate(Sales = as.integer(ifelse(is.na(Sales), 
+                                                       ifelse(Open == 0, 
+                                                              0,
+                                                              median(Sales, na.rm=T)), 
+                                                       Sales))) %>%
+                      mutate(Customers = as.integer(ifelse(is.na(Customers),
+                                                           ifelse(Open == 0, 
+                                                              0,
+                                                              median(Customers, na.rm=T)),
+                                                           Customers))) %>%
+                      mutate(logSales = ifelse(is.na(logSales),
+                                               ifelse(Open == 0,
+                                                      0,
+                                                      mean(logSales, na.rm=T)), 
+                                               logSales))
+```
+
+To be thorough, we finally check if there are any remaining NA values
+in the Sales, Customers and logSales columns.
+
+```{r, anything_missing}
+anything_missed <- subset(train_filled_gap, is.na(Sales) | is.na(Customers) | is.na(logSales))
+anything_missed
+```
+
+If we now take a look at the time series for our example store, Store 13,
+we should have a continuous time series.
+
+```{r, imputed_sales_store13, fig.height=6, fig.width=8}
+store13 <- subset(train_filled_gap, Store==13)
+ggplot(store13, aes(Date,Sales)) +
+  geom_line() +
+  geom_smooth() + 
+  ggtitle("Revenue for Store 13 over time")
+```
+
+Looking at the plot, we can still guess where the gap in the data was as
+the Sales figures are a little too regular in this period relative to 
+other points in time.  A similar statement can also be made of the plot 
+of logSales, however, with the logarithm reducing the spikes it is a 
+little less obvious.
+
+```{r, imputed_logSales_store13, fig.height=6, fig.width=8}
+ggplot(store13, aes(Date,logSales)) +
+  geom_line() +
+  geom_smooth() + 
+  ggtitle("Log of Revenue for Store 13")
+```
+
+
+```{r, write_data}
+write_csv(train_filled_gap,"train_filled_gap.csv")
+```
+
+# Forecasting
+
+The whole objective in filling the gap in the training data is to be able to 
+use the functions in the *forecast* package to forecast sales for all stores
+over the entire time series.  To test this, we will forecast sales for the 
+example store we have been using.
+
+First, we will need to load the test dataset to get information
+we need on store openings and promos during the period we are
+trying to forecast.
+
+```{r, load_test_data, warning=FALSE}
+test <- read_csv("test.csv", col_types=list(
+  Id = col_integer(),
+  Store = col_integer(),
+  DayOfWeek= col_integer(),
+  Date = col_date(),
+  Open = col_integer(),
+  Promo = col_integer(),
+  StateHoliday = col_character(),
+  SchoolHoliday = col_integer()))
+
+store13_test <- subset(test, Store == 13)
+```
+
+For our example, we will use the Fourier ARIMA method of forecasting 
+daily data outlined on [Rob Hyndman's blog](http://robjhyndman.com/hyndsight/dailydata/).
+To use this method, we requires dummy variables to indicate holidays. For that 
+we simply assume that if the store is closed, it is a holiday. The Promo variable 
+also shows regular periodic behaviour with promotions recurring regularly and 
+running for a week at a time. Thus we will include a regularisation variable 
+for the Promo as well.  Putting these together yields the following plot for 
+the raw forecast of sales over the test period.
+
+```{r, forecast_sales_arima, fig.height=6, fig.width=10}
+holiday <- 1 - store13$Open
+holidayf <- 1 - store13_test$Open
+promo <- store13$Promo
+promof <- store13_test$Promo
+test_period <- max(store13_test$Date) - min(store13_test$Date) + 1
+
+y <- ts(store13$Sales, frequency=7)
+z <- fourier(ts(store13$Sales, frequency=365.25), K=5)
+zf <- fourierf(ts(store13$Sales, frequency=365.25), K=5, h=test_period)
+fit <- auto.arima(y, xreg=cbind(z,holiday,promo), seasonal=FALSE)
+fc <- forecast(fit, xreg=cbind(zf,holidayf,promof), h=test_period)
+plot(fc)
+```
+
+The raw forecast shows negative revenue on days that the store should
+be closed but this can be easily corrected by multiplying with the 
+vector of open days.
+
+```{r, forecast_sales_data}
+store13_test$Sales <- fc$mean*store13_test$Open
+store13_test$Sales
+```
+
+
+We can use the same forecasting method with logSales and then use the
+exponential to convert the values back.
+
+```{r, forecast_logSales_arima, fig.height=6, fig.width=10}
+y <- ts(store13$logSales, frequency=7)
+z <- fourier(ts(store13$logSales, frequency=365.25), K=5)
+zf <- fourierf(ts(store13$logSales, frequency=365.25), K=5, h=test_period)
+fit <- auto.arima(y, xreg=cbind(z,holiday,promo), seasonal=FALSE)
+fc <- forecast(fit, xreg=cbind(zf,holidayf,promof), h=test_period)
+plot(fc)
+```
+
+
+```{r, forecast_logSales_data}
+store13_test$logSales <- fc$mean*store13_test$Open
+store13_test$logSales
+```
+
+Plotting the two sets of forecasts shows small variations between the 
+two that will need to be looked at in a separate study.
+
+```{r, forecast_comparison, message=FALSE, fig.height=6, fig.width=10}
+ggplot(store13_test, aes(Date)) + 
+  geom_line(aes(y = store13_test$Sales, colour = "Sales")) + 
+  geom_line(aes(y = exp(store13_test$logSales)-1, colour = "exp(logSales) - 1")) +
+  xlab("Test Period") + 
+  ylab("Forecast of Store 13 Sales")
+```
