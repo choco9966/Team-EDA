@@ -1,0 +1,118 @@
+Date,Weekday,HolidayName,HolidayType,ObservedIn
+2014-01-01,Wednesday,New Year's Day,National holiday,?
+2014-01-06,Monday,Epiphany,Common Local holidays,"BW,?BY,?ST"
+2014-02-14,Friday,Valentine's Day,Observance,?
+2014-03-03,Monday,Shrove Monday,Observance,?
+2014-03-04,Tuesday,Carnival/Shrove Tuesday,Observance,?
+2014-03-05,Wednesday,Carnival/Ash Wednesday,Silent Day,?
+2014-03-20,Thursday,March equinox,Season,?
+2014-03-30,Sunday,Daylight Saving Time starts,Clock change/Daylight Saving Time,?
+2014-04-13,Sunday,Palm Sunday,Observance,?
+2014-04-17,Thursday,Maundy Thursday,Silent Day,?
+2014-04-18,Friday,Good Friday,Silent Day,?
+2014-04-20,Sunday,Easter Day,Silent Day,BB
+2014-04-21,Monday,Easter Monday,National holiday,?
+2014-05-01,Thursday,May Day,National holiday,?
+2014-05-11,Sunday,Mother's Day,Observance,?
+2014-05-29,Thursday,Ascension Day,National holiday,?
+2014-06-08,Sunday,Whit Sunday,Silent Day,BB
+2014-06-09,Monday,Whit Monday,National holiday,?
+2014-06-19,Thursday,Corpus Christi,Common Local holidays,"BW,?BY,?HE,?NW,?RP,?SL"
+2014-06-21,Saturday,June Solstice,Season,?
+2014-08-08,Friday,Peace Festival,Local holiday,BY
+2014-08-15,Friday,Assumption of Mary,Common Local holidays,"BY, SL"
+2014-09-23,Tuesday,September equinox,Season,?
+2014-10-03,Friday,Day of German Unity,National holiday,?
+2014-10-26,Sunday,Daylight Saving Time ends,Clock change/Daylight Saving Time,?
+2014-10-31,Friday,Reformation Day,Common Local holidays,"BB,?MV,?SN,?ST,?TH"
+2014-10-31,Friday,Halloween,Observance,?
+2014-11-01,Saturday,All Saints' Day,Silent Day,"BW,?BY,?NW,?RP,?SL"
+2014-11-11,Tuesday,St. Martin's Day,Observance,?
+2014-11-16,Sunday,National Day of Mourning,Silent Day,?
+2014-11-19,Wednesday,Repentance Day,Common Local holidays,SN
+2014-11-23,Sunday,Sunday of the Dead,Silent Day,?
+2014-11-30,Sunday,First Sunday Advent,Observance,?
+2014-12-06,Saturday,Saint Nicholas Day,Observance,?
+2014-12-21,Sunday,December Solstice,Season,?
+2014-12-24,Wednesday,Christmas Eve,Silent Day,?
+2014-12-25,Thursday,Christmas Day,National holiday,?
+2014-12-26,Friday,Boxing Day,National holiday,?
+2014-12-31,Wednesday,New Year's Eve,Observance,?
+2013-01-01,Tuesday,New Year's Day,National holiday,?
+2013-01-06,Sunday,Epiphany,Common Local holidays,"BW,?BY,?ST"
+2013-02-11,Monday,Shrove Monday,Observance,?
+2013-02-12,Tuesday,Carnival/Shrove Tuesday,Observance,?
+2013-02-13,Wednesday,Carnival/Ash Wednesday,Silent Day,?
+2013-02-14,Thursday,Valentine's Day,Observance,?
+2013-03-20,Wednesday,March equinox,Season,?
+2013-03-24,Sunday,Palm Sunday,Observance,?
+2013-03-28,Thursday,Maundy Thursday,Silent Day,?
+2013-03-29,Friday,Good Friday,Silent Day,?
+2013-03-31,Sunday,Daylight Saving Time starts,Clock change/Daylight Saving Time,?
+2013-03-31,Sunday,Easter Day,Silent Day,BB
+2013-04-01,Monday,Easter Monday,National holiday,?
+2013-05-01,Wednesday,May Day,National holiday,?
+2013-05-09,Thursday,Ascension Day,National holiday,?
+2013-05-12,Sunday,Mother's Day,Observance,?
+2013-05-19,Sunday,Whit Sunday,Silent Day,BB
+2013-05-20,Monday,Whit Monday,National holiday,?
+2013-05-30,Thursday,Corpus Christi,Common Local holidays,"BW,?BY,?HE,?NW,?RP,?SL"
+2013-06-21,Friday,June Solstice,Season,?
+2013-08-08,Thursday,Peace Festival,Local holiday,BY
+2013-08-15,Thursday,Assumption of Mary,Common Local holidays,"BY, SL"
+2013-09-22,Sunday,September equinox,Season,?
+2013-10-03,Thursday,Day of German Unity,National holiday,?
+2013-10-27,Sunday,Daylight Saving Time ends,Clock change/Daylight Saving Time,?
+2013-10-31,Thursday,Reformation Day,Common Local holidays,"BB,?MV,?SN,?ST,?TH"
+2013-10-31,Thursday,Halloween,Observance,?
+2013-11-01,Friday,All Saints' Day,Silent Day,"BW,?BY,?NW,?RP,?SL"
+2013-11-11,Monday,St. Martin's Day,Observance,?
+2013-11-17,Sunday,National Day of Mourning,Silent Day,?
+2013-11-20,Wednesday,Repentance Day,Common Local holidays,SN
+2013-11-24,Sunday,Sunday of the Dead,Silent Day,?
+2013-12-01,Sunday,First Sunday Advent,Observance,?
+2013-12-06,Friday,Saint Nicholas Day,Observance,?
+2013-12-21,Saturday,December Solstice,Season,?
+2013-12-24,Tuesday,Christmas Eve,Silent Day,?
+2013-12-25,Wednesday,Christmas Day,National holiday,?
+2013-12-26,Thursday,Boxing Day,National holiday,?
+2013-12-31,Tuesday,New Year's Eve,Observance,?
+2015-01-01,Thursday,New Year's Day,National holiday,?
+2015-01-06,Tuesday,Epiphany,Common Local holidays,"BW,?BY,?ST"
+2015-02-14,Saturday,Valentine's Day,Observance,?
+2015-02-16,Monday,Shrove Monday,Observance,?
+2015-02-17,Tuesday,Carnival/Shrove Tuesday,Observance,?
+2015-02-18,Wednesday,Carnival/Ash Wednesday,Silent Day,?
+2015-03-20,Friday,March equinox,Season,?
+2015-03-29,Sunday,Daylight Saving Time starts,Clock change/Daylight Saving Time,?
+2015-03-29,Sunday,Palm Sunday,Observance,?
+2015-04-02,Thursday,Maundy Thursday,Silent Day,?
+2015-04-03,Friday,Good Friday,Silent Day,?
+2015-04-05,Sunday,Easter Day,Silent Day,BB
+2015-04-06,Monday,Easter Monday,National holiday,?
+2015-05-01,Friday,May Day,National holiday,?
+2015-05-10,Sunday,Mother's Day,Observance,?
+2015-05-14,Thursday,Ascension Day,National holiday,?
+2015-05-24,Sunday,Whit Sunday,Silent Day,BB
+2015-05-25,Monday,Whit Monday,National holiday,?
+2015-06-04,Thursday,Corpus Christi,Common Local holidays,"BW,?BY,?HE,?NW,?RP,?SL,?SN,?TH"
+2015-06-21,Sunday,June Solstice,Season,?
+2015-08-08,Saturday,Peace Festival,Local holiday,BY
+2015-08-15,Saturday,Assumption of Mary,Common Local holidays,"BY, SL"
+2015-09-23,Wednesday,September equinox,Season,?
+2015-10-03,Saturday,Day of German Unity,National holiday,?
+2015-10-25,Sunday,Daylight Saving Time ends,Clock change/Daylight Saving Time,?
+2015-10-31,Saturday,Reformation Day,Common Local holidays,"BB,?MV,?SN,?ST,?TH"
+2015-10-31,Saturday,Halloween,Observance,?
+2015-11-01,Sunday,All Saints' Day,Silent Day,"BW,?BY,?NW,?RP,?SL,?TH"
+2015-11-11,Wednesday,St. Martin's Day,Observance,?
+2015-11-15,Sunday,National Day of Mourning,Silent Day,?
+2015-11-18,Wednesday,Repentance Day,Common Local holidays,SN
+2015-11-22,Sunday,Sunday of the Dead,Silent Day,?
+2015-11-29,Sunday,First Sunday Advent,Observance,?
+2015-12-06,Sunday,Saint Nicholas Day,Observance,?
+2015-12-22,Tuesday,December Solstice,Season,?
+2015-12-24,Thursday,Christmas Eve,Silent Day,?
+2015-12-25,Friday,Christmas Day,National holiday,?
+2015-12-26,Saturday,Boxing Day,National holiday,?
+2015-12-31,Thursday,New Year's Eve,Observance,?
