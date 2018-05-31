@@ -12,4 +12,4 @@
 
 `다른파일` : 다른 팀원들 자료.
 
-`rossman.ipynb` : [inbass](https://gist.github.com/inbass/abcfd2b93e6903450942c1f87ba8b366)님의 
+`rossman.ipynb` : [inbass](https://gist.github.com/inbass/abcfd2b93e6903450942c1f87ba8b366)님의 코드
