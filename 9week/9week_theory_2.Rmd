@@ -1,10 +1,10 @@
-
----
+encoding: UTF-8
+```
 title: "9week_theory_2"
 author: "김현우,박주연,이주영,이지예,주진영,홍정아"
 date: "2018년 5월 30일"
 output: html_document
----
+```
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 #Sys.setlocale('LC_ALL','C')
