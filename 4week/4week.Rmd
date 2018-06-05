@@ -1,0 +1,82 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+encoding: UTF-8
+
+---
+title: "week4:선형회귀분석 실습"
+author: "김현우,박주연,이주영,이지예,주진영,홍정아"
+date: "2018년 4월 13일"
+output: pdf_document
+---
+
+```{r}
+#Sys.setlocale('LC_ALL','C')
+data(cars)
+tail(cars)
+```
+
+```{r}
+# 목표 dist ??? β0 + β1 * speed.
+model <- lm(dist ~ speed, data = cars) 
+# lm은 R에 내장된 함수로 linear regression을 불러들이는 함수이고, cars라는 data에서 y값으로는 dist를 x값으로는 speed를 넣으라는 명령어 입니다.
+```
+
+```{r}
+model
+```
+결론 dist = -17.579 + 3.932×speed.
+
+이제 추가적으로 더 자세한 내용을 보기 위해서 summary라는 명령어와 plot이라는 명령어를 입력해 보겠습니다.
+
+```{r}
+summary(model)
+```
+
+`R-squared`는 설명의 정도를 알려주는 공식인데, 왼쪽의 R-squared는 row가 증가함에따라 값이 증가해서 Adjusted R-squared를 사용합니다. 0.64는 전체데이터의 64%를 설명한다는 의미.
+Multiple R-squared:  0.6511,	Adjusted R-squared:  0.6438 
+
+마지막 p-value는 과연 이러한 회귀분석모델 자체가 유의미한지를 확인하는것으로 유의수준5%에서 의미가 있는것을 확인할 수 있습니다.
+F-statistic: 89.57 on 1 and 48 DF,  `p-value`: 1.49e-12
+
+```{r}
+par(mfrow = c(2, 2))
+plot(model)
+```
+```{r}
+#independent errors assumption
+#library(lmtest)
+lmtest::dwtest(model)
+```
+```{r}
+#normality assumption
+shapiro.test(model$residuals)
+```
+
+
+```{r}
+#constant variance assumption
+#library(car)
+car::ncvTest(model)
+```
+
+```{r}
+# multicollinearity
+# library(car) 
+# vif <- vif(lm(dist ~ speed, data = cars))
+# 지금 내용은 단순선형회귀분석이여서 (독립변수가 한개여서) 확인을 못하지만, 다중선형회귀분석에서는 이를 통해 다중공선성이 10이하인것을 확인해야 합니다
+```
+
+위 과정을 한번에 해주는 패키지 `gvlma`
+```{r}
+#library(gvlma)
+assumptiontest <- gvlma::gvlma(model)
+```
+
+
+```{r results = "hold"}
+summary(assumptiontest)
+```
+
