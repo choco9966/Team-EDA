@@ -1,0 +1,331 @@
+encoding: UTF-8
+
+```
+title: "kaggle_rossmanneda"  
+author: "김현우,박주연,이주영,이지예,주진영,홍정아"  
+date: "2018년 6월 8일"  
+output: html_document  
+```
+
+```{r, message=FALSE}
+library(data.table)
+library(zoo)
+library(dplyr)
+library(ggplot2)
+library(forecast)
+library(ggrepel)
+```
+
+
+```{r}
+test <- fread("test.csv")
+train <- fread("train.csv")
+store <- fread("store.csv")
+state <- fread("store_states.csv")
+```
+
+
+```{r}
+unique(state$State) #총 12개 
+```
+
+```{r}
+test[is.na(test)] <- 0
+```
+
+```{r}
+BE <- fread("BE.csv",sep=";") %>% select(c("Date","Events"))
+BE <- data.table(BE)
+head(BE$Date);tail(BE$Date) #2013-01-01 ~ 2015-09-17
+```
+```
+#잠시 8주차 자료로 넘어가서 summary를 보면, Date의 구간을 확인할 수 있음.
+> summary(train)
+     Store          DayOfWeek          Date                Sales      
+ Min.   :   1.0   Min.   :1.000   Min.   :2013-01-01   Min.   :    0  
+ 1st Qu.: 280.0   1st Qu.:2.000   1st Qu.:2013-08-17   1st Qu.: 3727  
+ Median : 558.0   Median :4.000   Median :2014-04-02   Median : 5744  
+ Mean   : 558.4   Mean   :3.998   Mean   :2014-04-11   Mean   : 5774  
+ 3rd Qu.: 838.0   3rd Qu.:6.000   3rd Qu.:2014-12-12   3rd Qu.: 7856  
+ Max.   :1115.0   Max.   :7.000   Max.   :2015-07-31   Max.   :41551  
+   Customers           Open            Promo        StateHoliday      
+ Min.   :   0.0   Min.   :0.0000   Min.   :0.0000   Length:1017209    
+ 1st Qu.: 405.0   1st Qu.:1.0000   1st Qu.:0.0000   Class :character  
+ Median : 609.0   Median :1.0000   Median :0.0000   Mode  :character  
+ Mean   : 633.1   Mean   :0.8301   Mean   :0.3815                     
+ 3rd Qu.: 837.0   3rd Qu.:1.0000   3rd Qu.:1.0000                     
+ Max.   :7388.0   Max.   :1.0000   Max.   :1.0000                     
+ SchoolHoliday     
+ Length:1017209    
+ Class :character  
+ Mode  :character
+ 
+>summary(test)
+       Id            Store          DayOfWeek          Date           
+Min.   :    1   Min.   :   1.0   Min.   :1.000   Min.   :2015-08-01  
+1st Qu.:10273   1st Qu.: 279.8   1st Qu.:2.000   1st Qu.:2015-08-12  
+Median :20544   Median : 553.5   Median :4.000   Median :2015-08-24  
+Mean   :20544   Mean   : 555.9   Mean   :3.979   Mean   :2015-08-24  
+3rd Qu.:30816   3rd Qu.: 832.2   3rd Qu.:6.000   3rd Qu.:2015-09-05  
+Max.   :41088   Max.   :1115.0   Max.   :7.000   Max.   :2015-09-17  
+
+     Open            Promo        StateHoliday       SchoolHoliday     
+Min.   :0.0000   Min.   :0.0000   Length:41088       Length:41088      
+1st Qu.:1.0000   1st Qu.:0.0000   Class :character   Class :character  
+Median :1.0000   Median :0.0000   Mode  :character   Mode  :character  
+Mean   :0.8543   Mean   :0.3958                                        
+3rd Qu.:1.0000   3rd Qu.:1.0000                                        
+Max.   :1.0000   Max.   :1.0000                                        
+NA's   :11   
+
+```
+
+```{r}
+BW <- fread("BW.csv") %>% select(c("Date","Events"))
+BW <- data.table(BW)
+
+BY <- fread("BY.csv",sep=";") %>% select(c("Date","Events"))
+BY <- data.table(BY)
+
+HB <- fread("HB.csv",sep=";") %>% select(c("Date","Events"))
+HB <- data.table(HB)
+
+HE <- fread("HE.csv",sep=";") %>% select(c("Date","Events"))
+HE <- data.table(HE)
+
+HH <- fread("HH.csv",sep=";") %>% select(c("Date","Events"))
+HH <- data.table(HH)
+
+NI <- fread("NI.csv",sep=";") %>% select(c("Date","Events"))
+NI <- data.table(NI)
+
+NW <- fread("NW.csv",sep=";") %>% select(c("Date","Events"))
+NW <- data.table(NW)
+
+RP <- fread("RP.csv",sep=";") %>% select(c("Date","Events"))
+RP <- data.table(RP)
+
+SH <- fread("SH.csv",sep=";") %>% select(c("Date","Events"))
+SH <- data.table(SH)
+
+SN <- fread("SN.csv",sep=";") %>% select(c("Date","Events"))
+SN <- data.table(SN)
+
+ST <- fread("ST.csv",sep=";") %>% select(c("Date","Events"))
+ST <- data.table(ST)
+
+TH <- fread("TH.csv") %>% select(c("Date","Events"))
+TH <- data.table(TH)
+```
+
+```{r}
+full <- bind_rows(train,test)
+```
+
+```{r}
+full <- data.table(full)
+state <- data.table(state)
+```
+
+```{r}
+setkey(full, Store)
+```
+
+```{r}
+full <- full[state,]
+```
+
+```{r}
+# 아래 state정보의 날짜는 chr형식으로 되어있기에 계산의 속도를 위해 full도 chr로 맞춰주고 진행해야함.
+full_BE <- full %>% filter(State=="BE") %>% as.data.table()
+setkey(full_BE,Date)
+full_BE <- full_BE[BE,]
+
+full_BW <- full %>% filter(State=="BW") %>% as.data.table()
+setkey(full_BW,Date)
+full_BW <-full_BW[BW,]
+
+full_BY <- full %>% filter(State=="BY") %>% as.data.table()
+setkey(full_BY,Date)
+full_BY <-full_BY[BY,]
+
+full_HB <- full %>% filter(State=="HB,NI") %>% as.data.table()
+setkey(full_HB,Date)
+full_HB <-full_HB[HB,]
+
+full_HE <- full %>% filter(State=="HE") %>% as.data.table()
+setkey(full_HE,Date)
+full_HE <-full_HE[HE,]
+
+full_HH <- full %>% filter(State=="HH") %>% as.data.table()
+setkey(full_HH,Date)
+full_HH <-full_HH[HH,]
+
+full_NI <- full %>% filter(State=="HB,NI") %>% as.data.table()
+setkey(full_NI,Date)
+full_NI <- full_NI[NI,]
+
+full_NW <- full %>% filter(State=="NW") %>% as.data.table()
+setkey(full_NW,Date)
+full_NW <-full_NW[NW,]
+
+full_RP <- full %>% filter(State=="RP") %>% as.data.table()
+setkey(full_RP,Date)
+full_RP <-full_RP[RP,]
+
+full_SH <- full %>% filter(State=="SH") %>% as.data.table()
+setkey(full_SH,Date)
+full_SH <-full_SH[SH,]
+
+full_SN <- full %>% filter(State=="SN") %>% as.data.table()
+setkey(full_SN,Date)
+full_SN <-full_SN[SN,]
+
+full_ST <- full %>% filter(State=="ST") %>% as.data.table()
+setkey(full_ST,Date)
+full_ST <-full_ST[ST,]
+
+full_TH <- full %>% filter(State=="TH") %>% as.data.table()
+setkey(full_TH,Date)
+full_TH <-full_TH[TH,]
+```
+
+```{r}
+full_HB_NI <- full_HB
+full_HB_NI$Events <- ifelse(full_HB$Events == "", full_NI$Events ,full_HB$Events)
+```
+
+
+```{r}
+full_weather <- bind_rows(full_HE,full_SN,full_ST,full_BE,full_BW,full_BY,full_HH,full_NW,full_RP,full_SH,full_TH,full_HB_NI)
+```
+
+그런데 이렇게 할 경우 full의 관측치는 1058297인 반면, full_weather는 1058673으로 376개가 증가하는 이상현상이 발생. train에는 있지만 test에는 없는 state 때문에 발생한 문제. <- 그래서 날짜 매칭이 안됨.
+
+```{r}
+ggplot(data = full_weather) + geom_bar(aes(x=State,fill=State)) 
+#보면 NA값들이 매칭이 안된 값들. 이걸 제거해주면 됨.
+```
+```{r}
+full_weather1 <- full_weather %>% filter(is.na(State)==FALSE)
+nrow(full)
+nrow(full_weather1)
+```
+구글 트렌드 데이터 추가.
+
+```{r}
+TREND_BE <- fread("Rossmann_DE_BE.csv",sep=",", skip = 5)
+TREND_BE <- data.table(TREND_BE)
+```
+
+2013-01-06일(일요일) ~ 2013-01-12일(토요일)까지를 주기로 trend를 기록함. 이에대한 분석을 위해 function을 만들어 
+매주 토요일날에 trend값과 sales값의 합을 기록시켜서 비교를 해줘야함.
+
+```{r}
+
+TREND_BE <- fread("Rossmann_DE_BE.csv",sep=",", skip = 9, nrows= 142)
+TREND_BE <- data.table(TREND_BE)
+colnames(TREND_BE) <- c("Date","Trends")
+TREND_BE$Date <- substr(TREND_BE$Date,14,23)
+final_BE <- left_join(full_BE,TREND_BE)
+
+
+TREND_BW <- fread("Rossmann_DE_BW.csv",sep=",", skip = 9, nrows= 142)
+TREND_BW <- data.table(TREND_BW)
+colnames(TREND_BW) <- c("Date","Trends")
+TREND_BW$Date <- substr(TREND_BW$Date,14,23)
+final_BW <- left_join(full_BW,TREND_BW)
+
+
+TREND_BY <- fread("Rossmann_DE_BY.csv",sep=",", skip = 470, nrows= 142)
+TREND_BY <- data.table(TREND_BY)
+colnames(TREND_BY) <- c("Date","Trends")
+TREND_BY$Date <- substr(TREND_BY$Date,14,23)
+final_BY <- left_join(full_BY,TREND_BY)
+
+
+TREND_HE <- fread("Rossmann_DE_HE.csv",sep=",", skip = 9, nrows= 142)
+TREND_HE <- data.table(TREND_HE)
+colnames(TREND_HE) <- c("Date","Trends")
+TREND_HE$Date <- substr(TREND_HE$Date,14,23)
+final_HE <- left_join(full_HE,TREND_HE)
+
+
+TREND_HH <- fread("Rossmann_DE_HH.csv",sep=",", skip = 9, nrows= 142)
+TREND_HH <- data.table(TREND_HH)
+colnames(TREND_HH) <- c("Date","Trends")
+TREND_HH$Date <- substr(TREND_HH$Date,14,23)
+final_HH <- left_join(full_HH,TREND_HH)
+
+
+#HB,NI는 같이 묶어서 HB검색은 무시함.
+TREND_NI <- fread("Rossmann_DE_NI.csv",sep=",", skip = 9, nrows= 142)
+TREND_NI <- data.table(TREND_NI)
+colnames(TREND_NI) <- c("Date","Trends")
+TREND_NI$Date <- substr(TREND_NI$Date,14,23)
+final_NI <- left_join(full_NI,TREND_NI)
+
+
+TREND_NW <- fread("Rossmann_DE_NW.csv",sep=",", skip = 9, nrows= 142)
+TREND_NW <- data.table(TREND_NW)
+colnames(TREND_NW) <- c("Date","Trends")
+TREND_NW$Date <- substr(TREND_NW$Date,14,23)
+final_NW <- left_join(full_NW,TREND_NW)
+
+
+TREND_RP <- fread("Rossmann_DE_RP.csv",sep=",", skip = 9, nrows= 142)
+TREND_RP <- data.table(TREND_RP)
+colnames(TREND_RP) <- c("Date","Trends")
+TREND_RP$Date <- substr(TREND_RP$Date,14,23)
+final_RP <- left_join(full_RP,TREND_RP)
+
+
+TREND_SH <- fread("Rossmann_DE_SH.csv",sep=",", skip = 9, nrows= 142)
+TREND_SH <- data.table(TREND_SH)
+colnames(TREND_SH) <- c("Date","Trends")
+TREND_SH$Date <- substr(TREND_SH$Date,14,23)
+final_SH <- left_join(full_SH,TREND_SH)
+
+
+TREND_SN <- fread("Rossmann_DE_SN.csv",sep=",", skip = 9, nrows= 142)
+TREND_SN <- data.table(TREND_SN)
+colnames(TREND_SN) <- c("Date","Trends")
+TREND_SN$Date <- substr(TREND_SN$Date,14,23)
+final_SN <- left_join(full_SN,TREND_SN)
+
+
+TREND_ST <- fread("Rossmann_DE_ST.csv",sep=",", skip = 9, nrows= 142)
+TREND_ST <- data.table(TREND_ST)
+colnames(TREND_ST) <- c("Date","Trends")
+TREND_ST$Date <- substr(TREND_ST$Date,14,23)
+final_ST <- left_join(full_ST,TREND_ST)
+
+
+TREND_TH <- fread("Rossmann_DE_TH.csv",sep=",", skip = 9, nrows= 142)
+TREND_TH <- data.table(TREND_TH)
+colnames(TREND_TH) <- c("Date","Trends")
+TREND_TH$Date <- substr(TREND_TH$Date,14,23)
+final_TH <- left_join(full_TH,TREND_TH)
+```
+
+
+```{r}
+final_full <- bind_rows(final_HE,final_SN,final_ST,final_BE,final_BW,final_BY,final_HH,final_NW,final_RP,final_SH,final_TH,final_NI)
+```
+
+```{r}
+ggplot(data = final_full) + geom_bar(aes(x=State,fill=State)) 
+final_full <- final_full %>% filter(is.na(State)==FALSE)
+nrow(full)
+nrow(final_full)
+```
+```{r}
+final_train <- final_full %>% filter(is.na(Id)==TRUE)
+final_test <- final_full %>% filter(is.na(Id)==FALSE)
+```
+
+```{r}
+write.csv(final_train,"final_train",row.names=FALSE)
+write.csv(final_test,"final_test",row.names=FALSE)
+```
+
