@@ -3,6 +3,9 @@
 
 `1week 실습.md` : kaggle titanic 데이터를 가지고 EDA 실습
 
+`train.csv` : titanic train.csv file
+
+`test.csv` : titanic test.csv file
 
 # titanic
 
