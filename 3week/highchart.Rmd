@@ -1,25 +1,25 @@
----
-title: "highcharter"
-output: html_document
-author: ±èÇö¿ì,¹ÚÁÖ¿¬,ÀÌÁÖ¿µ,ÀÌÁö¿¹,ÁÖÁø¿µ,È«Á¤¾Æ
+encoding : UTF-8
+```
+title: "highcharter"  
+output: html_document  
+author: ê¹€í˜„ìš°,ë°•ì£¼ì—°,ì´ì£¼ì˜,ì´ì§€ì˜ˆ,ì£¼ì§„ì˜,í™ì •ì•„  
+```
 
 ---
-
+title: "Extensive Analysis - Stack Overflow Community"  
+output:  
+  html_document:  
+    number_sections: false  
+    toc: TRUE  
+    fig_width: 10  
+    code_folding: hide  
+    fig_height: 5  
+    theme: flatly  
+    highlight: textmate  
+editor_options:   
+  chunk_output_type: console  
 ---
-title: "Extensive Analysis - Stack Overflow Community"
-output:
-  html_document:
-    number_sections: false
-    toc: TRUE
-    fig_width: 10
-    code_folding: hide
-    fig_height: 5
-    theme: flatly
-    highlight: textmate
-editor_options: 
-  chunk_output_type: console
----
-¿øº»:https://www.kaggle.com/umeshnarayanappa/extensive-analysis-stack-overflow-survey-2018¸¦ °øºÎÇÏ·Á°í ¸¸µç ÀÚ·áÀÔ´Ï´Ù.
+ì›ë³¸:https://www.kaggle.com/umeshnarayanappa/extensive-analysis-stack-overflow-survey-2018ë¥¼ ê³µë¶€í•˜ë ¤ê³  ë§Œë“  ìë£Œì…ë‹ˆë‹¤.
 
 ![](https://camo.githubusercontent.com/0b6fa6fded52f8eaf752f4ec0edb413f61ae9e46/687474703a2f2f7777772e667265656c6f676f766563746f72732e6e65742f77702d636f6e74656e742f75706c6f6164732f323031332f30362f737461636b6f766572666c6f775f6c6f676f2e6a7067)
 
@@ -29,7 +29,7 @@ Founded in 2008, Stack Overflow is the largest, most trusted online community fo
 Stack Overflow partners with businesses to help them understand, hire, engage, and enable the world's developers. Our products and services are focused on developer marketing, technical recruiting, market research, and enterprise knowledge sharing.
 
 # About Stack Overflow 2018 Developer Survey
-Each year, we at Stack Overflow ask the developer community about everything from their favorite technologies to their job preferences. This year marks the eighth year we¡¯ve published our Annual Developer Survey results???with the largest number of respondents yet. Over 100,000 developers took the 30-minute survey in January 2018.
+Each year, we at Stack Overflow ask the developer community about everything from their favorite technologies to their job preferences. This year marks the eighth year weâ€™ve published our Annual Developer Survey results???with the largest number of respondents yet. Over 100,000 developers took the 30-minute survey in January 2018.
 
 This year, we covered a few new topics ranging from artificial intelligence to ethics in coding. We also found that underrepresented groups in tech responded to our survey at even lower rates than we would expect from their participation in the workforce. Want to dive into the results yourself and see what you can learn about salaries or machine learning or diversity in tech? We look forward to seeing what you find!
 
