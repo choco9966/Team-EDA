@@ -1,0 +1,1849 @@
+---
+title: "highcharter"
+output: html_document
+author: 김현우,박주연,이주영,이지예,주진영,홍정아
+
+---
+
+---
+title: "Extensive Analysis - Stack Overflow Community"
+output:
+  html_document:
+    number_sections: false
+    toc: TRUE
+    fig_width: 10
+    code_folding: hide
+    fig_height: 5
+    theme: flatly
+    highlight: textmate
+editor_options: 
+  chunk_output_type: console
+---
+원본:https://www.kaggle.com/umeshnarayanappa/extensive-analysis-stack-overflow-survey-2018를 공부하려고 만든 자료입니다.
+
+![](https://camo.githubusercontent.com/0b6fa6fded52f8eaf752f4ec0edb413f61ae9e46/687474703a2f2f7777772e667265656c6f676f766563746f72732e6e65742f77702d636f6e74656e742f75706c6f6164732f323031332f30362f737461636b6f766572666c6f775f6c6f676f2e6a7067)
+
+# About Stack Overflow
+Founded in 2008, Stack Overflow is the largest, most trusted online community for developers to learn, share their knowledge, and build their careers. More than 50 million professional and aspiring programmers visit Stack Overflow each month to help solve coding problems, develop new skills, and find job opportunities.
+
+Stack Overflow partners with businesses to help them understand, hire, engage, and enable the world's developers. Our products and services are focused on developer marketing, technical recruiting, market research, and enterprise knowledge sharing.
+
+# About Stack Overflow 2018 Developer Survey
+Each year, we at Stack Overflow ask the developer community about everything from their favorite technologies to their job preferences. This year marks the eighth year we’ve published our Annual Developer Survey results???with the largest number of respondents yet. Over 100,000 developers took the 30-minute survey in January 2018.
+
+This year, we covered a few new topics ranging from artificial intelligence to ethics in coding. We also found that underrepresented groups in tech responded to our survey at even lower rates than we would expect from their participation in the workforce. Want to dive into the results yourself and see what you can learn about salaries or machine learning or diversity in tech? We look forward to seeing what you find!
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+library(readxl)
+library(tidyverse)
+library(ggplot2)
+library(highcharter)
+library(plotly)
+library(stringr)
+library(viridis)
+library(gridExtra)
+library(tidyverse)
+library(highcharter)
+library(plotly)
+library(dygraphs)
+library(lubridate)
+library("viridisLite")
+library(countrycode)
+library(leaflet)
+library(xts)
+library(htmltools)
+
+
+
+data <- read_csv("../input/survey_results_public.csv")
+data[is.na(data)] <- ""
+data[data$Country=="United States",]$Country <- "United States of America"
+data[data$Country=="Bolivia",]$Country <- "Bolivia (Plurinational State of)"
+data[data$Country=="Venezuela, Bolivarian Republic of...",]$Country <- "Venezuela, Bolivarian Republic of"
+data[data$Country=="Iran, Islamic Republic of...",]$Country <- "Iran (Islamic Republic of)"
+data[data$Country=="United Kingdom",]$Country <- "United Kingdom of Great Britain and Northern Ireland"
+
+```
+
+Dataset has huge number of attributes which is not surprising given the size of the survey and breadth of the survey. As part of this analysis I will try to explore as many as attributes possible. Demography datasets are always very interesting to explore. There is always a lot you can learn about people from these kind of datasets.
+
+# Country of Residence
+
+```{r}
+
+countries <- data %>% group_by(Country) %>% summarise(Total = round(n()))
+names(countries) <- c("country.code", "total")
+countries$iso3 <- countrycode_data[match(countries$country.code, countrycode_data$country.name.en), "iso3c"]
+
+data(worldgeojson, package = "highcharter")
+dshmstops <- data.frame(q = c(0, exp(1:5)/exp(5)),
+                        c = substring(viridis(5 + 1, option = "B"), 0, 7)) %>%  list_parse2()
+
+highchart() %>% 
+  hc_add_series_map(worldgeojson, countries, value = "total", joinBy = "iso3") %>% 
+  hc_colorAxis(stops = dshmstops) %>% 
+  hc_legend(enabled = TRUE) %>% 
+  hc_add_theme(hc_theme_google()) %>% 
+  hc_mapNavigation(enabled = TRUE) %>%
+  hc_title(text = "Stack Overflow Survey Respondents - Country of Residence") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+* More than 20% of the respondents are from USA
+* Second highest number are from India
+* Third being Germany
+* People from `r length(unique(data$Country))` Countries have responded to the survey.
+
+##Top 10 Countries - Based on Number of Respondents
+
+```{r}
+
+top10countries <- data %>% group_by(Country) %>% summarise(Total = n()) %>% arrange(desc(Total)) %>% head(10)
+
+hchart(top10countries, "bar", hcaes(x = Country, y = Total, color = Country)) %>%
+    hc_colors(c("darkorange", "darkgray")) %>% 
+  hc_title(text = "Stack Overflow Survey Respondents - Country of Residence") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+* Indian stack overflow community comes second.
+* Surprising China is not in top 10.
+
+# Code as a hobby
+
+<!-- ```{r} -->
+
+<!-- p2 <- ggplot(data, aes(OpenSource, fill = OpenSource)) + geom_bar() + scale_fill_viridis(discrete = TRUE) -->
+<!-- p1 <- ggplot(data, aes(Hobby, fill = Hobby)) + geom_bar() + scale_fill_viridis(discrete = TRUE) -->
+<!-- cowplot::plot_grid(p1, p2, labels = "AUTO") -->
+<!-- ``` -->
+
+* Nearly 80% of the respondents code as a hobby which is very encouraging and motivating.
+* Nearly 40% contribute to Open Source Projects. This clearly tells that Stack Overflow developer community is highly skilled.
+
+## Hobbyists among Top 10 Countries
+
+```{r}
+
+top10countries_hobby <- data[data$Country %in% top10countries$Country,] %>% group_by(Country,Hobby) %>% summarise(IsitaHobby = n())
+
+hchart(top10countries_hobby, "column", hcaes(x = Country, y = IsitaHobby, group = Hobby, fill = Country)) %>%
+    hc_colors(c("darkorange", "darkgray")) %>% 
+  hc_title(text = "Hobbyists among Top 10 Countries") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+* Trend among the developers in Top 10 countries is big percentage of them code as a hobby.
+
+## Hobbyists and Employment
+
+```{r}
+
+hobby_emp <- data[data$Employment!="",] %>% group_by(Hobby,Employment) %>% summarise(Count = n())
+
+hchart(hobby_emp, "column", hcaes(x = Employment, y = Count, group = Hobby, fill = Employment)) %>%
+    hc_colors(c("darkorange", "darkgray")) %>% 
+  hc_title(text = "Hobbyists and Employment") %>%
+    hc_subtitle(text = "How many have full time jobs?") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+* Biggest group of developers who code as a hobby have full time jobs.
+
+
+## Hobbyists and Students
+
+```{r}
+
+hobby_student <- data[data$Student!="",] %>% group_by(Hobby,Student) %>% summarise(Count = n())
+
+hchart(hobby_student, "column", hcaes(x = Student, y = Count, group = Hobby, fill = Student)) %>%
+    hc_colors(c("darkorange", "darkgray")) %>% 
+  hc_title(text = "Hobbyists and Student") %>%
+    hc_subtitle(text = "How many are full time students?") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+* Very heartening to see lot of students coding as a hobby. Biggest positive is even students using platform like Stack Overflow to learn and share. 
+
+
+# Contributing to the OpenSource
+
+## Open Source Contributors among Top 10 Countries
+
+```{r}
+
+top10countries_opensource <- data[data$Country %in% top10countries$Country,] %>% group_by(Country, OpenSource) %>% summarise(Contribute2OpenSource = n())
+
+hchart(top10countries_opensource, "column", hcaes(x = Country, y = Contribute2OpenSource, group = OpenSource)) %>%
+    hc_colors(c("darkorange", "darkgray")) %>% 
+  hc_title(text = "Open Source Contributors among Top 10 Countries") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+* It looks like almost 50-50 when it comes to contributing to the opensource.
+
+
+## Open Source Contributors and Employment
+
+```{r}
+
+OpenSource_emp <- data[data$Employment!="",] %>% group_by(OpenSource,Employment) %>% summarise(Count = n())
+
+hchart(OpenSource_emp, "column", hcaes(x = Employment, y = Count, group = OpenSource, fill = Employment)) %>%
+    hc_colors(c("darkorange", "darkgray")) %>% 
+  hc_title(text = "Open Source Contributors and Employment") %>%
+    hc_subtitle(text = "How many have full time jobs?") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+* More people in the freelancing and contractors group contribute to the open source projects.
+
+
+## Open Source Contributors and Students
+
+```{r}
+
+OpenSource_student <- data[data$Student!="",] %>% group_by(OpenSource,Student) %>% summarise(Count = n())
+
+hchart(OpenSource_student, "column", hcaes(x = Student, y = Count, group = OpenSource, fill = Student)) %>%
+  hc_colors(c("darkorange", "darkgray")) %>% 
+  hc_title(text = "OpenSource Contributors and Student") %>%
+    hc_subtitle(text = "How many are full time students?") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+* There is huge community of students who are contributing to the Open source projects. All these students are definitely doing great job for themselves to learn and grow in the world of Software development.
+
+
+# Formal Education
+
+```{r}
+
+data$FormalEducation <- as.factor(data$FormalEducation)
+levels(data$FormalEducation) <- c("Not Answered", "Associate Degree", "Bachelor Degree", "No Formal Education", "Master Degree", "Doctoral Degree", "Primary School", "Professional Degree",  "Secondary School", "Some College")
+
+
+# hchart(data$FormalEducation, "column") %>%
+#   hc_colors(c("darkorange", "darkgray")) %>% 
+#   hc_title(text = "Formal Education") %>%
+#     hc_subtitle(text = "What is the Education Level of the Respondents?") %>%
+#   hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+ 
+
+formaleducation <- as_data_frame(table(data$FormalEducation))
+
+
+plot_ly(data = formaleducation, labels = ~Var1, values = ~n) %>%
+  add_pie(hole = 0.6) %>%
+  layout(showlegend = T,
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+
+
+```
+
+
+# Developer Type
+
+```{r}
+
+devtype <- as_data_frame(table(unlist(strsplit(data$DevType, ';'))))
+
+hchart(devtype, "bar", hcaes(x = Var1, y = n, fill = Var1)) %>%
+  hc_colors(c("darkgray")) %>% 
+  hc_title(text = "Which of the following describe you?") %>%
+    hc_subtitle(text = "Roles or Designations") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+# test <- data[,9:10]
+# topdev_compsize <- separate(test, col = DevType, paste("DevType",1:20,sep="."), ";", extra = "merge")
+# dim(topdev_compsize)
+# dim(na.omit(topdev_compsize))
+
+```
+
+* There are 20 different developer types 
+* 66 of them have selected all the 20 roles. Surprising how people can identify or play such variety of roles :)
+
+## Top Most Developer Type by Company Size
+
+
+```{r}
+
+test <- data[data$CompanySize!="",9:10]
+topdev_compsize <- separate(test, col = DevType, paste("DevType",1:20,sep="."), ";", extra = "merge")
+topdev_compsize <- topdev_compsize %>% gather(type, developertype, 2:21, na.rm = TRUE)
+topdev_compsize <- topdev_compsize[,c(1,3)]
+
+DT::datatable(topdev_compsize %>% group_by(CompanySize, developertype) %>% summarise(Count = n()) %>% arrange(desc(Count)) %>% top_n(1))
+
+```
+
+* Companies of every size has Biggest number of Backend Engineers.
+* I was expecting there would be atleast few developer types among top most.
+* Taking Top 3 Developer types or developer roles could be good insight.
+
+## Top 3 Developer Type by Company Size
+
+```{r}
+
+DT::datatable(topdev_compsize %>% group_by(CompanySize, developertype) %>% summarise(Count = n()) %>% arrange(desc(Count)) %>% top_n(3))
+
+top3 <- topdev_compsize %>% group_by(CompanySize, developertype) %>% summarise(Count = n()) %>% arrange(desc(Count)) %>% top_n(3)
+
+hchart(top3, "column", hcaes(x = CompanySize, y = Count, group = developertype, fill = CompanySize)) %>%
+  hc_title(text = "Top 3 Developer Type by Company Size") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px"))
+
+```
+
+
+* Backend Developer top most.
+* Full stack is second top most.
+* Front end comes in third.
+
+## Top 3 Developer Type by Employment
+
+```{r}
+
+test <- data[data$Employment!="",c(6,10)]
+topdev_emp <- separate(test, col = DevType, paste("DevType",1:20,sep="."), ";", extra = "merge")
+topdev_emp <- topdev_emp %>% gather(type, developertype, 2:21, na.rm = TRUE)
+topdev_emp <- topdev_emp[,c(1,3)]
+
+DT::datatable(topdev_emp %>% group_by(Employment, developertype) %>% summarise(Count = n()) %>% arrange(desc(Count)) %>% top_n(3))
+
+top3 <- topdev_emp %>% group_by(Employment, developertype) %>% summarise(Count = n()) %>% arrange(desc(Count)) %>% top_n(3)
+
+
+hchart(top3, "heatmap", hcaes(x = Employment, y = developertype, value = Count)) %>%
+  hc_title(text = "Top 3 Developer Type by Employment Type") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px"))
+
+```
+
+## Top 3 Developer Type by Formal Education
+
+```{r}
+
+test <- data[data$FormalEducation!="",c(7,10)]
+topdev_edu <- separate(test, col = DevType, paste("DevType",1:20,sep="."), ";", extra = "merge")
+topdev_edu <- topdev_edu %>% gather(type, developertype, 2:21, na.rm = TRUE)
+topdev_edu <- topdev_edu[,c(1,3)]
+
+DT::datatable(topdev_edu %>% group_by(FormalEducation, developertype) %>% summarise(Count = n()) %>% arrange(desc(Count)) %>% top_n(3))
+
+top3 <- topdev_edu %>% group_by(FormalEducation, developertype) %>% summarise(Count = n()) %>% arrange(desc(Count)) %>% top_n(3)
+
+
+hchart(top3, "heatmap", hcaes(x = FormalEducation, y = developertype, value = Count)) %>%
+  hc_title(text = "Top 3 Developer Type by Formal Education") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px"))
+
+```
+
+* Only doctoral degree holders are having Data Scientist roles in TOp 3.
+
+## Top 3 Developer Type by Country
+
+```{r}
+
+test <- data[data$Country!="",c(4,10)]
+topdev_country <- separate(test, col = DevType, paste("DevType",1:20,sep="."), ";", extra = "merge")
+topdev_country <- topdev_country %>% gather(type, developertype, 2:21, na.rm = TRUE)
+topdev_country <- topdev_country[,c(1,3)]
+
+DT::datatable(topdev_country[topdev_country$Country %in% top10countries$Country,] %>% group_by(Country, developertype) %>% summarise(Count = n()) %>% arrange(desc(Count)) %>% top_n(3))
+
+top3 <- topdev_country[topdev_country$Country %in% top10countries$Country,] %>% group_by(Country, developertype) %>% summarise(Count = n()) %>% arrange(desc(Count)) %>% top_n(3)
+
+hchart(top3, "column", hcaes(x = Country, y = Count, group = developertype, fill = Country)) %>%
+  hc_title(text = "Top 3 Developer Type in Top 10 Countries") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px"))
+
+# hchart(top3, "heatmap", hcaes(x = Country, y = developertype, value = Count)) %>%
+#   hc_title(text = "Top 3 Developer Type by Country") %>%
+#   hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px"))
+
+```
+
+* Backend Developer top most.
+* Full stack is second top most.
+* Front end comes in third.
+
+
+## Where are Data Scientist?
+
+```{r}
+
+datascientists <- topdev_country[topdev_country$developertype=="Data scientist or machine learning specialist",] %>% group_by(Country, developertype) %>% summarise(Count = n()) %>% arrange(desc(Count))
+
+datascientists <- datascientists[,c(1,3)]
+names(datascientists) <- c("country.code", "total")
+datascientists$iso3 <- countrycode_data[match(datascientists$country.code, countrycode_data$country.name.en), "iso3c"]
+
+data(worldgeojson, package = "highcharter")
+dshmstops <- data.frame(q = c(0, exp(1:5)/exp(5)),
+                        c = substring(viridis(5 + 1, option = "D"), 0, 7)) %>%  list_parse2()
+
+highchart() %>% 
+  hc_add_series_map(worldgeojson, datascientists, value = "total", joinBy = "iso3") %>% 
+  hc_colorAxis(stops = dshmstops) %>% 
+  hc_legend(enabled = TRUE) %>% 
+  hc_add_theme(hc_theme_google()) %>% 
+  hc_mapNavigation(enabled = TRUE) %>%
+  hc_title(text = "Data Scientists") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+
+```
+
+# Company Size Type
+
+```{r}
+
+compsize <- as_data_frame(table(data$CompanySize))
+
+# hchart(compsize, "bar", hcaes(x = Var1, y = n, fill = Var1)) %>%
+#   hc_colors(c("darkorange")) %>% 
+#   hc_title(text = "Whats the Size of the Company") %>%
+#   hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+
+plot_ly(data = compsize, labels = ~Var1, values = ~n) %>%
+  add_pie(hole = 0.6) %>%
+  layout(showlegend = T,
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+```
+
+
+* 27K have not answered this query
+* Biggest group work for company of size less than 100.
+* Almost 10% work for companies with more than 10K employees.
+
+## Company Size and Open Source Contributors
+
+```{r}
+
+compsize_OpenSource <- data[data$CompanySize!="",] %>% group_by(CompanySize,OpenSource) %>% summarise(Count = n())
+
+hchart(compsize_OpenSource, "column", hcaes(x = CompanySize, y = Count, group = OpenSource, fill = CompanySize)) %>%
+  hc_colors(c("darkorange", "darkgray")) %>% 
+  hc_title(text = "Company Size and Open Source Contributors") %>%
+    hc_subtitle(text = "Is there a relationship between Company Size and Contributions to Open Source") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+* As the company size grows percentage of employees contributing to Open source seems to be going down.
+
+## Company Size and Hobbyists
+
+```{r}
+
+compsize_hobby <- data[data$CompanySize!="",] %>% group_by(CompanySize,Hobby) %>% summarise(Count = n())
+
+hchart(compsize_hobby, "column", hcaes(x = CompanySize, y = Count, group = Hobby, fill = CompanySize)) %>%
+  hc_colors(c("darkorange", "darkgray")) %>% 
+  hc_title(text = "Company Size and Hobbyists") %>%
+    hc_subtitle(text = "Is there a relationship between Company Size and People Coding as a Hobby") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+* Almost every company size has bigger percentage of people who code as a hobby.
+
+
+## Company Size and Career Satisfaction
+
+```{r}
+
+compsize_CareerSatisfaction <- data[data$CompanySize!="",] %>% group_by(CompanySize, CareerSatisfaction) %>% summarise(Count = n())
+
+hchart(compsize_CareerSatisfaction, "column", hcaes(x = CompanySize, y = Count, group = CareerSatisfaction, fill = CompanySize)) %>%
+  hc_title(text = "Company Size and CareerSatisfaction") %>%
+    hc_subtitle(text = "Is there a relationship between Company Size and Career Satisfaction") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+* 22K have not responded to Career Satisfaction question.
+* Majority are moderately satisfied.
+* Second biggest group are Extremely satisfied.
+
+
+## Company Size and Professional Coding Experience
+
+```{r}
+
+data$YearsCodingProf <- factor(data$YearsCodingProf, ordered = TRUE, levels = c("", "0-2 years", "3-5 years", "6-8 years", "9-11 years", "12-14 years", "15-17 years", "18-20 years", "21-23 years", "24-26 years", "27-29 years", "30 or more years"))
+
+compsize_YearsCodingProf <- data[data$CompanySize!="",] %>% group_by(CompanySize, YearsCodingProf) %>% summarise(Count = n())
+
+hchart(compsize_YearsCodingProf, "column", hcaes(x = CompanySize, y = Count, group = YearsCodingProf, fill = CompanySize)) %>%
+  hc_title(text = "Company Size and Professional Coding Experience") %>%
+    hc_subtitle(text = "Which Companies have the most experienced?") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+* People with 3-5 years experience are the most across all companies sizes.
+* Distribution of experienced coders is almost the same across companies except the smallest companies where people with 0-2 years experience are the most. These may be the startups which are just starting with the available resources.
+
+## Company Size and Top 10 Countries
+
+```{r}
+
+compsize_top10Countries <- data[data$CompanySize!="" & data$Country %in% top10countries$Country,] %>% group_by(Country, CompanySize) %>% summarise(Count = n())
+
+hchart(compsize_top10Countries, "heatmap", hcaes(x = CompanySize, y = Country, value = Count)) %>%
+  hc_title(text = "Company Size and Top 10 Countries") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+
+## Company Size and Job Satisfaction
+
+```{r}
+
+compsize_jobSatisfaction <- data[data$CompanySize!="",] %>% group_by(CompanySize, JobSatisfaction) %>% summarise(Count = n())
+
+hchart(compsize_jobSatisfaction, "column", hcaes(x = CompanySize, y = Count, group = JobSatisfaction, fill = CompanySize)) %>%
+  hc_title(text = "Company Size and JobSatisfaction") %>%
+    hc_subtitle(text = "Is there a relationship between Company Size and Job Satisfaction") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+* Majority say they are moderately satisfied. I think lot of us just dont know how much we are really satisfied with the job and career. We mostly end up saying moderately. Same thing goes to any survey questions, we mostly pick something right in the middle than the extreme options. :)
+
+
+# Hope in Five Years
+
+```{r}
+
+data$HopeFiveYears <- as.factor(data$HopeFiveYears)
+levels(data$HopeFiveYears) <- c("Not Answered", "Do Same Work", "Retire", "Start Own Company", "Product/Project Manager", "Engineering Manager", "Non-Software Development", "Specialized Technical Role")
+
+
+hopeinfiveyears <- as_data_frame(table(data$HopeFiveYears))
+
+
+plot_ly(data = hopeinfiveyears, labels = ~Var1, values = ~n) %>%
+  add_pie(hole = 0.6) %>%
+  layout(showlegend = T,
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+```
+
+* 23.4% have not answered this query. 
+* Nearly 20% want to start their own company
+* 1.28% are set to retire.
+* Around 2% would like to be in NOn Software Development role.
+* 26% want to be more specialized technical role.
+
+
+## Where are future Founders and Co Founders?
+
+```{r}
+
+
+founders <- data[data$HopeFiveYears=="Start Own Company",] %>% group_by(Country) %>% summarise(Count = n()) %>% arrange(desc(Count))
+
+names(founders) <- c("country.code", "total")
+founders$iso3 <- countrycode_data[match(founders$country.code, countrycode_data$country.name.en), "iso3c"]
+
+data(worldgeojson, package = "highcharter")
+dshmstops <- data.frame(q = c(0, exp(1:5)/exp(5)),
+                        c = substring(viridis(5 + 1, option = "A"), 0, 7)) %>%  list_parse2()
+
+highchart() %>% 
+  hc_add_series_map(worldgeojson, founders, value = "total", joinBy = "iso3") %>% 
+  hc_colorAxis(stops = dshmstops) %>% 
+  hc_legend(enabled = TRUE) %>% 
+  hc_add_theme(hc_theme_google()) %>% 
+  hc_mapNavigation(enabled = TRUE) %>%
+  hc_title(text = "Where are future Founders and Co Founders?") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+
+## Where are people who would like to continue doing same work?
+
+```{r}
+
+
+samework <- data[data$HopeFiveYears=="Do Same Work",] %>% group_by(Country) %>% summarise(Count = n()) %>% arrange(desc(Count))
+
+names(samework) <- c("country.code", "total")
+samework$iso3 <- countrycode_data[match(samework$country.code, countrycode_data$country.name.en), "iso3c"]
+
+data(worldgeojson, package = "highcharter")
+dshmstops <- data.frame(q = c(0, exp(1:5)/exp(5)),
+                        c = substring(viridis(5 + 1, option = "C"), 0, 7)) %>%  list_parse2()
+
+highchart() %>% 
+  hc_add_series_map(worldgeojson, samework, value = "total", joinBy = "iso3") %>% 
+  hc_colorAxis(stops = dshmstops) %>% 
+  hc_legend(enabled = TRUE) %>% 
+  hc_add_theme(hc_theme_google()) %>% 
+  hc_mapNavigation(enabled = TRUE) %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+
+## Hope in Five years and Job Satisfaction
+
+```{r}
+
+hopein5_job <- data[data$HopeFiveYears!="Not Answered",] %>% group_by(HopeFiveYears, JobSatisfaction) %>% summarise(Count = n())
+
+hchart(hopein5_job, "heatmap", hcaes(x = HopeFiveYears, y = JobSatisfaction, value = Count)) %>%
+  hc_title(text = "Company Size and Top 10 Countries") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+
+* There are lot of people are who dissatisfied with their current jobs and still would be doing same work even after 5 years.
+
+
+# Job Satisfaction
+
+```{r}
+
+jobie <- as_data_frame(table(data$JobSatisfaction))
+
+plot_ly(data = jobie, labels = ~Var1, values = ~n) %>%
+  add_pie(hole = 0.4) %>%
+  layout(showlegend = T,
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+```
+
+* 27% are moderately satisfied.
+* Nearly 60% are either not satisfied or dont know.
+* Only 40% are really satisfied with their jobs which is very surprising.
+
+## Which country has highest percentage of extremely satisfied?
+
+```{r}
+
+extremesatisfied1 <- data %>% group_by(Country) %>% summarise(Count = n())
+extremesatisfied2 <- data[data$JobSatisfaction=="Extremely satisfied",] %>% group_by(Country) %>% summarise(Total = n())
+
+extreme <- extremesatisfied1 %>% left_join(extremesatisfied2, by = "Country")
+extreme[is.na(extreme)] <- "0"
+extreme$Total <- as.integer(extreme$Total)
+extreme <- extreme %>% mutate(Percent = Total/Count * 100) %>% select(Country, Percent)
+
+names(extreme) <- c("country.code", "total")
+extreme$iso3 <- countrycode_data[match(extreme$country.code, countrycode_data$country.name.en), "iso3c"]
+
+data(worldgeojson, package = "highcharter")
+dshmstops <- data.frame(q = c(0, exp(1:5)/exp(5)),
+                        c = substring(viridis(5 + 1, option = "C"), 0, 7)) %>%  list_parse2()
+
+highchart() %>% 
+  hc_add_series_map(worldgeojson, extreme, value = "total", joinBy = "iso3") %>% 
+  hc_colorAxis(stops = dshmstops) %>% 
+  hc_legend(enabled = TRUE) %>% 
+  hc_add_theme(hc_theme_google()) %>% 
+  hc_mapNavigation(enabled = TRUE) %>%
+  hc_title(text = "Which country has highest percentage of extremely satisfied?") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+
+* Tajikistan has highest percentage of extremely satisified.
+* Nordic countries and some countries in South of Africa have more extremely satisfied than countries like USA and Canada.
+* India has less than 10% of the people who say they are extremely satisfied.
+
+
+## Top 10 Countries - Highest Extremely Satisfied
+
+```{r}
+
+hchart(extreme %>% arrange(desc(total)) %>% head(10), "column", hcaes(x = country.code, y = total, color = country.code)) %>%
+  hc_title(text = "Top 10 Countries - Highest Percent of Extremely Satisfied") %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+## Job Satisfaction and Developer Type
+
+```{r}
+
+data[data$JobSatisfaction!="",] %>% 
+    mutate(DevType = str_split(DevType, pattern = ";")) %>% 
+    unnest(DevType) %>% 
+    filter(DevType!="") %>%
+    group_by(JobSatisfaction, DevType) %>%
+    summarise(Total = n()) %>%
+    hchart("heatmap", hcaes(x = JobSatisfaction, y = DevType, value = Total)) %>%
+    hc_title(text = "Job Satisfaction and Developer Type") %>%
+    hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+
+```
+
+
+
+## Job Satisfaction and YearsCodingProf
+
+```{r}
+
+data[data$JobSatisfaction!="",] %>% 
+    group_by(JobSatisfaction, YearsCodingProf) %>%
+    summarise(Total = n()) %>%
+    hchart("heatmap", hcaes(x = JobSatisfaction, y = YearsCodingProf, value = Total)) %>%
+    hc_title(text = "Job Satisfaction and Developer Type") %>%
+    hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+## Percentage of Job Satisfaction 
+
+```{r}
+
+oneyear <- data[data$JobSatisfaction!="" & data$LastNewJob == "Less than a year ago",] %>% 
+    group_by(JobSatisfaction, LastNewJob) %>%
+    summarise(Total = n()) %>%
+    mutate(Percentage = Total/nrow(data[data$JobSatisfaction!="" & data$LastNewJob == "Less than a year ago",]) * 100)
+
+
+fouryear <- data[data$JobSatisfaction!="" & data$LastNewJob == "More than 4 years ago",] %>% 
+    group_by(JobSatisfaction, LastNewJob) %>%
+    summarise(Total = n())  %>%
+    mutate(Percentage = Total/nrow(data[data$JobSatisfaction!="" & data$LastNewJob == "More than 4 years ago",]) * 100)
+
+years <- rbind(oneyear, fouryear)
+    
+hchart(years, "column", hcaes(x = JobSatisfaction, y = Percentage, group = LastNewJob)) %>%
+    hc_colors(c("darkorange", "darkgrey")) %>% 
+    hc_title(text = "Percentage of Job Satisfaction among people who changed job in last one year and who havent changed in last 4 years") %>%
+    hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+* Job satisfaction is better among people who have changed the jobs in last year than the people who have not changed in more than 4 years
+
+# Programming Languages
+
+
+## Languages Worked With 
+
+```{r}
+
+data[data$LanguageWorkedWith!="",] %>% 
+    mutate(LanguageWorkedWith = str_split(LanguageWorkedWith, pattern = ";")) %>% 
+    unnest(LanguageWorkedWith) %>% 
+    group_by(LanguageWorkedWith) %>%
+    summarise(Total = n()) %>%
+    arrange(desc(Total)) %>%
+    hchart("column", hcaes(x = LanguageWorkedWith, y = Total)) %>%
+    hc_colors(colors = c("darkgrey")) %>%
+    hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+
+
+## Languages Desire to work next year
+
+```{r}
+
+data[data$LanguageDesireNextYear!="",] %>% 
+    mutate(LanguageDesireNextYear = str_split(LanguageDesireNextYear, pattern = ";")) %>% 
+    unnest(LanguageDesireNextYear) %>% 
+    group_by(LanguageDesireNextYear) %>%
+    summarise(Total = n()) %>%
+    arrange(desc(Total)) %>%
+    hchart("column", hcaes(x = LanguageDesireNextYear, y = Total)) %>%
+    hc_colors(colors = c("darkorange")) %>%
+    hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+* Javascript is the undisputed king of programming :)
+* Clearly Python is one of the most preferred and gaining huge popularity.
+* Surprisingly R is not gaining the same.
+
+## Python
+
+### Where can you recruit Python Developers?
+
+```{r}
+
+python <- data[data$LanguageWorkedWith!="",] %>% 
+        mutate(LanguageWorkedWith = str_split(LanguageWorkedWith, pattern = ";")) %>% 
+        unnest(LanguageWorkedWith) %>%
+        filter(LanguageWorkedWith=="Python")
+
+
+python_countries <- python %>%
+                         group_by(Country) %>%
+                         summarise(Total = n()) 
+
+
+names(python_countries) <- c("country.code", "total")
+python_countries$iso3 <- countrycode_data[match(python_countries$country.code, countrycode_data$country.name.en), "iso3c"]
+
+data(worldgeojson, package = "highcharter")
+dshmstops <- data.frame(q = c(0, exp(1:5)/exp(5)),
+                        c = substring(viridis(5 + 1, option = "D"), 0, 7)) %>%  list_parse2()
+
+highchart() %>% 
+  hc_add_series_map(worldgeojson, python_countries, value = "total", joinBy = "iso3") %>% 
+  hc_colorAxis(stops = dshmstops) %>% 
+  hc_legend(enabled = TRUE) %>% 
+  hc_add_theme(hc_theme_google()) %>% 
+  hc_mapNavigation(enabled = TRUE) %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+
+<br>
+<br>
+
+### Python Developers
+
+```{r fig.height=8}
+
+python_top10countries <- python %>%
+                         group_by(Country) %>%
+                         summarise(Total = n()) %>%
+                         arrange(desc(Total)) %>%
+                         top_n(10)
+
+
+python_top10countries$Country <- factor(python_top10countries$Country)
+levels(python_top10countries$Country) <- c("Australia", "Brazil", "Canada", "France", "Germany", "India", "Holland", "Russia", "UK", "USA")
+
+a <- list(
+  text = "Top 10 Countries",
+  xref = "paper",
+  yref = "paper",
+  yanchor = "bottom",
+  xanchor = "center",
+  align = "center",
+  x = 0.5,
+  y = 1,
+  showarrow = FALSE
+)
+
+
+p1 <- plot_ly(data = python_top10countries, x = ~Total, y = ~Country, type = "bar", orientation = 'h', showlegend=FALSE, marker=list(showscale=FALSE)) %>% 
+      layout(margin = list(b = 120), annotations = a)
+
+
+python_yearsofcoding <- python[python$YearsCodingProf!="",] %>%
+                         group_by(YearsCodingProf) %>%
+                         summarise(Total = n()) %>%
+                         arrange(desc(Total))
+
+
+b <- list(
+  text = "Years of Coding",
+  xref = "paper",
+  yref = "paper",
+  yanchor = "bottom",
+  xanchor = "center",
+  align = "center",
+  x = 0.5,
+  y = 1,
+  showarrow = FALSE
+)
+
+
+p2 <- plot_ly(data = python_yearsofcoding, x = ~YearsCodingProf, y = ~Total, type = "bar", showlegend=FALSE, marker=list(showscale=FALSE)) %>% 
+      layout(annotations = b)
+
+
+python_education <- python %>%
+                         group_by(FormalEducation) %>%
+                         summarise(Total = n()) %>%
+                         arrange(desc(Total))
+
+
+c <- list(
+  text = "Formal Education",
+  xref = "paper",
+  yref = "paper",
+  yanchor = "bottom",
+  xanchor = "center",
+  align = "center",
+  x = 0.5,
+  y = 1,
+  showarrow = FALSE
+)
+
+
+p3 <- plot_ly(data = python_education, x = ~Total, y = ~FormalEducation, type = "bar", orientation = 'h', showlegend=FALSE, marker=list(showscale=FALSE)) %>% 
+      layout(annotations = c)
+
+
+python_platform <-  python %>% 
+        mutate(PlatformWorkedWith = str_split(PlatformWorkedWith, pattern = ";")) %>% 
+        unnest(PlatformWorkedWith) %>% 
+        group_by(PlatformWorkedWith) %>%
+        summarise(Total = n())
+
+d <- list(
+  text = "Platform Worked With",
+  xref = "paper",
+  yref = "paper",
+  yanchor = "bottom",
+  xanchor = "center",
+  align = "center",
+  x = 0.5,
+  y = 1,
+  showarrow = FALSE
+)
+
+p4 <- plot_ly(data = python_platform, x = ~PlatformWorkedWith, y = ~Total, type = "bar", showlegend=FALSE, marker=list(showscale=FALSE)) %>% 
+      layout(margin = list(b = 100), annotations = d)
+
+subplot(subplot(p1, p3, margin = 0.05), p2, p4, nrows = 3, margin = 0.05)  %>% hide_legend()
+
+```
+
+<br>
+<br>
+
+
+## R
+
+### Where can you recruit R Developers?
+
+```{r}
+
+rprog <- data[data$LanguageWorkedWith!="",] %>% 
+        mutate(LanguageWorkedWith = str_split(LanguageWorkedWith, pattern = ";")) %>% 
+        unnest(LanguageWorkedWith) %>%
+        filter(LanguageWorkedWith=="R")
+
+r_countries <- rprog %>%
+               group_by(Country) %>%
+               summarise(Total = n()) 
+
+
+names(r_countries) <- c("country.code", "total")
+r_countries$iso3 <- countrycode_data[match(r_countries$country.code, countrycode_data$country.name.en), "iso3c"]
+
+data(worldgeojson, package = "highcharter")
+dshmstops <- data.frame(q = c(0, exp(1:5)/exp(5)),
+                        c = substring(viridis(5 + 1, option = "A"), 0, 7)) %>%  list_parse2()
+
+highchart() %>% 
+  hc_add_series_map(worldgeojson, r_countries, value = "total", joinBy = "iso3") %>% 
+  hc_colorAxis(stops = dshmstops) %>% 
+  hc_legend(enabled = TRUE) %>% 
+  hc_add_theme(hc_theme_google()) %>% 
+  hc_mapNavigation(enabled = TRUE) %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+
+
+<br>
+<br>
+
+### R Developers 
+
+```{r fig.height=8}
+
+r_top10countries <- rprog %>%
+                         group_by(Country) %>%
+                         summarise(Total = n()) %>%
+                         arrange(desc(Total)) %>%
+                         top_n(10)
+
+
+r_top10countries$Country <- factor(r_top10countries$Country)
+levels(r_top10countries$Country) <- c("Australia", "Brazil", "Canada", "France", "Germany", "India", "Holland", "Spain", "UK", "USA")
+
+a <- list(
+  text = "Top 10 Countries",
+  xref = "paper",
+  yref = "paper",
+  yanchor = "bottom",
+  xanchor = "center",
+  align = "center",
+  x = 0.5,
+  y = 1,
+  showarrow = FALSE
+)
+
+
+p1 <- plot_ly(data = r_top10countries, x = ~Total, y = ~Country, type = "bar", orientation = 'h', showlegend=FALSE, marker=list(showscale=FALSE)) %>% 
+      layout(margin = list(b = 120), annotations = a)
+
+
+r_yearsofcoding <- rprog[rprog$YearsCodingProf!="",] %>%
+                         group_by(YearsCodingProf) %>%
+                         summarise(Total = n()) %>%
+                         arrange(desc(Total))
+
+
+b <- list(
+  text = "Years of Coding",
+  xref = "paper",
+  yref = "paper",
+  yanchor = "bottom",
+  xanchor = "center",
+  align = "center",
+  x = 0.5,
+  y = 1,
+  showarrow = FALSE
+)
+
+
+p2 <- plot_ly(data = r_yearsofcoding, x = ~YearsCodingProf, y = ~Total, type = "bar", showlegend=FALSE, marker=list(showscale=FALSE)) %>% 
+      layout(annotations = b)
+
+
+r_education <- rprog %>%
+                         group_by(FormalEducation) %>%
+                         summarise(Total = n()) %>%
+                         arrange(desc(Total))
+
+
+c <- list(
+  text = "Formal Education",
+  xref = "paper",
+  yref = "paper",
+  yanchor = "bottom",
+  xanchor = "center",
+  align = "center",
+  x = 0.5,
+  y = 1,
+  showarrow = FALSE
+)
+
+
+p3 <- plot_ly(data = r_education, x = ~Total, y = ~FormalEducation, type = "bar", orientation = 'h', showlegend=FALSE, marker=list(showscale=FALSE)) %>% 
+      layout(annotations = c)
+
+
+r_platform <-  rprog %>% 
+        mutate(PlatformWorkedWith = str_split(PlatformWorkedWith, pattern = ";")) %>% 
+        unnest(PlatformWorkedWith) %>% 
+        group_by(PlatformWorkedWith) %>%
+        summarise(Total = n())
+
+d <- list(
+  text = "Platform Worked With",
+  xref = "paper",
+  yref = "paper",
+  yanchor = "bottom",
+  xanchor = "center",
+  align = "center",
+  x = 0.5,
+  y = 1,
+  showarrow = FALSE
+)
+
+p4 <- plot_ly(data = r_platform, x = ~PlatformWorkedWith, y = ~Total, type = "bar", showlegend=FALSE, marker=list(showscale=FALSE)) %>% 
+      layout(margin = list(b = 100), annotations = d)
+
+subplot(subplot(p1, p3, margin = 0.05), p2, p4, nrows = 3, margin = 0.05)  %>% hide_legend()
+
+```
+
+
+<br>
+<br>
+
+
+## GO (Gaining lot of popularity)
+
+### Where can you recruit Go Developers?
+
+```{r}
+
+goprog <- data[data$LanguageWorkedWith!="",] %>% 
+        mutate(LanguageWorkedWith = str_split(LanguageWorkedWith, pattern = ";")) %>% 
+        unnest(LanguageWorkedWith) %>%
+        filter(LanguageWorkedWith=="Go")
+
+go_countries <- goprog %>%
+               group_by(Country) %>%
+               summarise(Total = n()) 
+
+
+names(go_countries) <- c("country.code", "total")
+go_countries$iso3 <- countrycode_data[match(go_countries$country.code, countrycode_data$country.name.en), "iso3c"]
+
+data(worldgeojson, package = "highcharter")
+dshmstops <- data.frame(q = c(0, exp(1:5)/exp(5)),
+                        c = substring(viridis(5 + 1, option = "A"), 0, 7)) %>%  list_parse2()
+
+highchart() %>% 
+  hc_add_series_map(worldgeojson, go_countries, value = "total", joinBy = "iso3") %>% 
+  hc_colorAxis(stops = dshmstops) %>% 
+  hc_legend(enabled = TRUE) %>% 
+  hc_add_theme(hc_theme_google()) %>% 
+  hc_mapNavigation(enabled = TRUE) %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+
+<br>
+<br>
+
+### Go Developers
+
+```{r fig.height=8}
+
+go_top10countries <- goprog %>%
+                         group_by(Country) %>%
+                         summarise(Total = n()) %>%
+                         arrange(desc(Total)) %>%
+                         top_n(10)
+
+go_top10countries$Country <- factor(go_top10countries$Country)
+levels(go_top10countries$Country) <- c("Australia", "Brazil", "Canada", "France", "Germany", "India", "Holland", "Russia", "UK", "USA")
+
+a <- list(
+  text = "Top 10 Countries",
+  xref = "paper",
+  yref = "paper",
+  yanchor = "bottom",
+  xanchor = "center",
+  align = "center",
+  x = 0.5,
+  y = 1,
+  showarrow = FALSE
+)
+
+
+p1 <- plot_ly(data = go_top10countries, x = ~Total, y = ~Country, type = "bar", orientation = 'h', showlegend=FALSE, marker=list(showscale=FALSE)) %>% 
+      layout(margin = list(b = 120), annotations = a)
+
+
+go_yearsofcoding <- goprog[goprog$YearsCodingProf!="",] %>%
+                         group_by(YearsCodingProf) %>%
+                         summarise(Total = n()) %>%
+                         arrange(desc(Total))
+
+
+b <- list(
+  text = "Years of Coding",
+  xref = "paper",
+  yref = "paper",
+  yanchor = "bottom",
+  xanchor = "center",
+  align = "center",
+  x = 0.5,
+  y = 1,
+  showarrow = FALSE
+)
+
+
+p2 <- plot_ly(data = go_yearsofcoding, x = ~YearsCodingProf, y = ~Total, type = "bar", showlegend=FALSE, marker=list(showscale=FALSE)) %>% 
+      layout(annotations = b)
+
+
+go_education <- goprog %>%
+                         group_by(FormalEducation) %>%
+                         summarise(Total = n()) %>%
+                         arrange(desc(Total))
+
+
+c <- list(
+  text = "Formal Education",
+  xref = "paper",
+  yref = "paper",
+  yanchor = "bottom",
+  xanchor = "center",
+  align = "center",
+  x = 0.5,
+  y = 1,
+  showarrow = FALSE
+)
+
+
+p3 <- plot_ly(data = go_education, x = ~Total, y = ~FormalEducation, type = "bar", orientation = 'h', showlegend=FALSE, marker=list(showscale=FALSE)) %>% 
+      layout(annotations = c)
+
+
+go_platform <-  goprog %>% 
+        mutate(PlatformWorkedWith = str_split(PlatformWorkedWith, pattern = ";")) %>% 
+        unnest(PlatformWorkedWith) %>% 
+        group_by(PlatformWorkedWith) %>%
+        summarise(Total = n())
+
+d <- list(
+  text = "Platform Worked With",
+  xref = "paper",
+  yref = "paper",
+  yanchor = "bottom",
+  xanchor = "center",
+  align = "center",
+  x = 0.5,
+  y = 1,
+  showarrow = FALSE
+)
+
+p4 <- plot_ly(data = go_platform, x = ~PlatformWorkedWith, y = ~Total, type = "bar", showlegend=FALSE, marker=list(showscale=FALSE)) %>% 
+      layout(margin = list(b = 100), annotations = d)
+
+subplot(subplot(p1, p3, margin = 0.05), p2, p4, nrows = 3, margin = 0.05)  %>% hide_legend()
+
+```
+
+
+
+<br>
+<br>
+
+
+## Scala (Gaining lot of popularity)
+
+### Where can you recruit Scala Developers?
+
+```{r}
+
+scalaprog <- data[data$LanguageWorkedWith!="",] %>% 
+        mutate(LanguageWorkedWith = str_split(LanguageWorkedWith, pattern = ";")) %>% 
+        unnest(LanguageWorkedWith) %>%
+        filter(LanguageWorkedWith=="Scala")
+
+scala_countries <- scalaprog %>%
+               group_by(Country) %>%
+               summarise(Total = n()) 
+
+
+names(scala_countries) <- c("country.code", "total")
+scala_countries$iso3 <- countrycode_data[match(scala_countries$country.code, countrycode_data$country.name.en), "iso3c"]
+
+data(worldgeojson, package = "highcharter")
+dshmstops <- data.frame(q = c(0, exp(1:5)/exp(5)),
+                        c = substring(viridis(5 + 1, option = "A"), 0, 7)) %>%  list_parse2()
+
+highchart() %>% 
+  hc_add_series_map(worldgeojson, scala_countries, value = "total", joinBy = "iso3") %>% 
+  hc_colorAxis(stops = dshmstops) %>% 
+  hc_legend(enabled = TRUE) %>% 
+  hc_add_theme(hc_theme_google()) %>% 
+  hc_mapNavigation(enabled = TRUE) %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+
+<br>
+<br>
+
+### Scala Developers
+
+```{r fig.height=8}
+
+scala_top10countries <- scalaprog %>%
+                         group_by(Country) %>%
+                         summarise(Total = n()) %>%
+                         arrange(desc(Total)) %>%
+                         top_n(10)
+
+scala_top10countries$Country <- factor(scala_top10countries$Country)
+levels(scala_top10countries$Country) <- c("Australia", "Canada", "France", "Germany", "India", "Holland", "Poland", "Russia", "UK", "USA")
+
+a <- list(
+  text = "Top 10 Countries",
+  xref = "paper",
+  yref = "paper",
+  yanchor = "bottom",
+  xanchor = "center",
+  align = "center",
+  x = 0.5,
+  y = 1,
+  showarrow = FALSE
+)
+
+
+p1 <- plot_ly(data = scala_top10countries, x = ~Total, y = ~Country, type = "bar", orientation = 'h', showlegend=FALSE, marker=list(showscale=FALSE)) %>% 
+      layout(margin = list(b = 120), annotations = a)
+
+
+scala_yearsofcoding <- scalaprog[scalaprog$YearsCodingProf!="",] %>%
+                         group_by(YearsCodingProf) %>%
+                         summarise(Total = n()) %>%
+                         arrange(desc(Total))
+
+
+b <- list(
+  text = "Years of Coding",
+  xref = "paper",
+  yref = "paper",
+  yanchor = "bottom",
+  xanchor = "center",
+  align = "center",
+  x = 0.5,
+  y = 1,
+  showarrow = FALSE
+)
+
+
+p2 <- plot_ly(data = scala_yearsofcoding, x = ~YearsCodingProf, y = ~Total, type = "bar", showlegend=FALSE, marker=list(showscale=FALSE)) %>% 
+      layout(annotations = b)
+
+
+scala_education <- scalaprog %>%
+                         group_by(FormalEducation) %>%
+                         summarise(Total = n()) %>%
+                         arrange(desc(Total))
+
+c <- list(
+  text = "Formal Education",
+  xref = "paper",
+  yref = "paper",
+  yanchor = "bottom",
+  xanchor = "center",
+  align = "center",
+  x = 0.5,
+  y = 1,
+  showarrow = FALSE
+)
+
+
+p3 <- plot_ly(data = scala_education, x = ~Total, y = ~FormalEducation, type = "bar", orientation = 'h', showlegend=FALSE, marker=list(showscale=FALSE)) %>% 
+      layout(annotations = c)
+
+
+scala_platform <-  scalaprog %>% 
+        mutate(PlatformWorkedWith = str_split(PlatformWorkedWith, pattern = ";")) %>% 
+        unnest(PlatformWorkedWith) %>% 
+        group_by(PlatformWorkedWith) %>%
+        summarise(Total = n())
+
+d <- list(
+  text = "Platform Worked With",
+  xref = "paper",
+  yref = "paper",
+  yanchor = "bottom",
+  xanchor = "center",
+  align = "center",
+  x = 0.5,
+  y = 1,
+  showarrow = FALSE
+)
+
+p4 <- plot_ly(data = scala_platform, x = ~PlatformWorkedWith, y = ~Total, type = "bar", showlegend=FALSE, marker=list(showscale=FALSE)) %>% 
+      layout(margin = list(b = 100), annotations = d)
+
+subplot(subplot(p1, p3, margin = 0.05), p2, p4, nrows = 3, margin = 0.05)  %>% hide_legend()
+
+```
+
+<br>
+<br>
+
+
+## Swift (Apple Developers Making Big Money)
+
+### Where can you recruit Apple Developers?
+
+```{r}
+
+swiftprog <- data[data$LanguageWorkedWith!="",] %>% 
+        mutate(LanguageWorkedWith = str_split(LanguageWorkedWith, pattern = ";")) %>% 
+        unnest(LanguageWorkedWith) %>%
+        filter(LanguageWorkedWith=="Swift")
+
+swift_countries <- swiftprog %>%
+               group_by(Country) %>%
+               summarise(Total = n()) 
+
+
+names(swift_countries) <- c("country.code", "total")
+swift_countries$iso3 <- countrycode_data[match(swift_countries$country.code, countrycode_data$country.name.en), "iso3c"]
+
+data(worldgeojson, package = "highcharter")
+dshmstops <- data.frame(q = c(0, exp(1:5)/exp(5)),
+                        c = substring(viridis(5 + 1, option = "A"), 0, 7)) %>%  list_parse2()
+
+highchart() %>% 
+  hc_add_series_map(worldgeojson, swift_countries, value = "total", joinBy = "iso3") %>% 
+  hc_colorAxis(stops = dshmstops) %>% 
+  hc_legend(enabled = TRUE) %>% 
+  hc_add_theme(hc_theme_google()) %>% 
+  hc_mapNavigation(enabled = TRUE) %>%
+  hc_credits(enabled = TRUE, text = "Sources: Stack Overflow 2018 Developer Survey", style = list(fontSize = "10px")) 
+
+```
+
+
+<br>
+<br>
+
+### Swift Developers
+
+```{r fig.height=8}
+
+swift_top10countries <- swiftprog %>%
+                         group_by(Country) %>%
+                         summarise(Total = n()) %>%
+                         arrange(desc(Total)) %>%
+                         top_n(10)
+
+
+swift_top10countries$Country <- factor(swift_top10countries$Country)
+levels(swift_top10countries$Country) <- c("Australia", "Brazil", "Canada", "France", "Germany", "India", "Holland", "Russia", "UK", "USA")
+
+a <- list(
+  text = "Top 10 Countries",
+  xref = "paper",
+  yref = "paper",
+  yanchor = "bottom",
+  xanchor = "center",
+  align = "center",
+  x = 0.5,
+  y = 1,
+  showarrow = FALSE
+)
+
+
+p1 <- plot_ly(data = swift_top10countries, x = ~Total, y = ~Country, type = "bar", orientation = 'h', showlegend=FALSE, marker=list(showscale=FALSE)) %>% 
+      layout(margin = list(b = 120), annotations = a)
+
+
+swift_yearsofcoding <- swiftprog[swiftprog$YearsCodingProf!="",] %>%
+                         group_by(YearsCodingProf) %>%
+                         summarise(Total = n()) %>%
+                         arrange(desc(Total))
+
+b <- list(
+  text = "Years of Coding",
+  xref = "paper",
+  yref = "paper",
+  yanchor = "bottom",
+  xanchor = "center",
+  align = "center",
+  x = 0.5,
+  y = 1,
+  showarrow = FALSE
+)
+
+p2 <- plot_ly(data = swift_yearsofcoding, x = ~YearsCodingProf, y = ~Total, type = "bar", showlegend=FALSE, marker=list(showscale=FALSE)) %>% 
+      layout(annotations = b)
+
+
+swift_education <- swiftprog %>%
+                         group_by(FormalEducation) %>%
+                         summarise(Total = n()) %>%
+                         arrange(desc(Total))
+
+
+c <- list(
+  text = "Formal Education",
+  xref = "paper",
+  yref = "paper",
+  yanchor = "bottom",
+  xanchor = "center",
+  align = "center",
+  x = 0.5,
+  y = 1,
+  showarrow = FALSE
+)
+
+
+p3 <- plot_ly(data = swift_education, x = ~Total, y = ~FormalEducation, type = "bar", orientation = 'h', showlegend=FALSE, marker=list(showscale=FALSE)) %>% 
+      layout(annotations = c)
+
+
+swift_platform <-  swiftprog %>% 
+        mutate(PlatformWorkedWith = str_split(PlatformWorkedWith, pattern = ";")) %>% 
+        unnest(PlatformWorkedWith) %>% 
+        group_by(PlatformWorkedWith) %>%
+        summarise(Total = n())
+
+d <- list(
+  text = "Platform Worked With",
+  xref = "paper",
+  yref = "paper",
+  yanchor = "bottom",
+  xanchor = "center",
+  align = "center",
+  x = 0.5,
+  y = 1,
+  showarrow = FALSE
+)
+
+p4 <- plot_ly(data = swift_platform, x = ~PlatformWorkedWith, y = ~Total, type = "bar", showlegend=FALSE, marker=list(showscale=FALSE)) %>% 
+      layout(margin = list(b = 100), annotations = d)
+
+subplot(subplot(p1, p3, margin = 0.05), p2, p4, nrows = 3, margin = 0.05)  %>% hide_legend()
+
+```
+
+The reason why I picked these languages is :
+
+Python and R are really gaining lot of popularity or may be I should say they are already very popular. Competing against each other for the Data Science Language Crown. 
+
+Go created by Google and will continue to grow big time. It has lot of blockchain implementations to its name already which is making it even more popular with the RISE OF BLOCKCHAIN.
+
+Scala became very popular after Apache Spark and it is continuing to grow. 
+
+Apple developers are making huge money. As per the latest Apple Conference they have already paid $80 billion to the developers. Interested to know where are all these developers from and what is their background.
+
+* Top 10 countries among these languages remain almost the same with very less change.
+* Russia, Spain, Poland and Brazil are the countries which move in and out of Top 10 
+* One very keen observation in Top 10 India is the only country in Top 10 among South Asian Countries.Even India falls behind in ranking when it comes to Go and Scala.
+* Europe is the best continent with lot of countries having big pool of highly talented programmers.
+* USA might be the Top 1 but no other South or North American countries make it to Top 10 except Brazil.
+* Software development and demand for programmers is only going to grow in coming years and decades. This is great opportunity for people across the world. This is even more great opportunity for people from developing countries. 
+
+
+
+# What is more important in Job Opportunities?
+
+```{r fig.height=8}
+
+jobaccess <- data[,18:27]
+jobaccess <- as.data.frame(lapply(jobaccess, as.integer))
+jobaccess <- na.omit(jobaccess)
+names(jobaccess) <- c('Industry',
+       'Financial performance',
+       'Department',
+       'Technologies',
+       'Compensation and Benefits',
+       'Office environment',
+       'Work from Home',
+       'Professional development',
+       'Diversity of the company',
+       'Impact of Work')
+
+jobassess <- jobaccess %>% 
+  gather(AssessingJobOpportunity, HowImportant, 1:10) %>%     
+  group_by(AssessingJobOpportunity, HowImportant) %>% summarise(Total = n()) %>%
+  mutate(percentage=paste0(round(Total/sum(Total)*100, 2))) %>% 
+  ungroup() %>% 
+  select(AssessingJobOpportunity, HowImportant, percentage) 
+
+jobassess$percentage <- as.double(jobassess$percentage)
+
+jobassess <- jobassess %>% 
+             spread(AssessingJobOpportunity, percentage)
+
+y <- names(jobassess[,2:11])
+
+x1 <- jobassess[,2:11] %>% slice(1) %>% unlist(., use.names=FALSE)
+x2 <- jobassess[,2:11] %>% slice(2) %>% unlist(., use.names=FALSE)
+x3 <- jobassess[,2:11] %>% slice(3) %>% unlist(., use.names=FALSE)
+x4 <- jobassess[,2:11] %>% slice(4) %>% unlist(., use.names=FALSE)
+x5 <- jobassess[,2:11] %>% slice(5) %>% unlist(., use.names=FALSE)
+x6 <- jobassess[,2:11] %>% slice(6) %>% unlist(., use.names=FALSE)
+x7 <- jobassess[,2:11] %>% slice(7) %>% unlist(., use.names=FALSE)
+x8 <- jobassess[,2:11] %>% slice(8) %>% unlist(., use.names=FALSE)
+x9 <- jobassess[,2:11] %>% slice(9) %>% unlist(., use.names=FALSE)
+x10 <- jobassess[,2:11] %>% slice(10) %>% unlist(., use.names=FALSE)
+
+testing <- data.frame(y, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10)
+
+top_labels <- jobassess$HowImportant
+
+plot_ly(testing, x = ~x1, y = ~y, type = 'bar', orientation = 'h', marker = list(color = 'rgb(255, 0, 0)', line = list(color = 'rgb(248, 248, 249)', width = 1))) %>%
+  add_trace(x = ~x2, marker = list(color = 'rgb(242, 13, 13)')) %>%
+  add_trace(x = ~x3, marker = list(color = 'rgb(230, 25, 25)')) %>%
+  add_trace(x = ~x4, marker = list(color = 'rgb(217, 38, 38)')) %>%
+  add_trace(x = ~x5, marker = list(color = 'rgb(204, 51, 51)')) %>%
+  add_trace(x = ~x6, marker = list(color = 'rgb(191, 64, 64)')) %>%
+  add_trace(x = ~x7, marker = list(color = 'rgb(179, 77, 77)')) %>%
+  add_trace(x = ~x8, marker = list(color = 'rgb(166, 89, 89)')) %>%
+  add_trace(x = ~x9, marker = list(color = 'rgb(147, 108, 108)')) %>%
+  add_trace(x = ~x10, marker = list(color = 'rgb(128, 128, 128)')) %>%
+  layout(xaxis = list(title = "",
+                      showgrid = FALSE,
+                      showline = FALSE,
+                      showticklabels = FALSE,
+                      zeroline = FALSE,
+                      domain = c(0.15, 1)),
+         yaxis = list(title = "",
+                      showgrid = FALSE,
+                      showline = FALSE,
+                      showticklabels = FALSE,
+                      zeroline = FALSE),
+         barmode = 'stack',
+#         paper_bgcolor = 'rgb(248, 248, 255)', plot_bgcolor = 'rgb(248, 248, 255)',
+         margin = list(l = 30, r = 10, t = 150, b = 30),
+         showlegend = FALSE) %>%
+  # labeling the y-axis
+  add_annotations(xref = 'paper', yref = 'y', x = 0.14, y = y,
+                  xanchor = 'right',
+                  text = y,
+                  font = list(family = 'Arial', size = 12,
+                            color = 'rgb(67, 67, 67)'),
+                  showarrow = FALSE, align = 'right')  %>%
+  # labeling the percentages of each bar (x_axis)
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 / 2, y = y,
+                  text = paste(testing[,"x1"]),
+                  font = list(family = 'Arial', size = 12,
+                            color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 + x2 / 2, y = y,
+                  text = paste(testing[,"x2"]),
+                  font = list(family = 'Arial', size = 12,
+                              color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 + x2 + x3 / 2, y = y,
+                  text = paste(testing[,"x3"]),
+                  font = list(family = 'Arial', size = 12,
+                              color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 + x2 + x3 + x4 / 2, y = y,
+                  text = paste(testing[,"x4"]),
+                  font = list(family = 'Arial', size = 12,
+                              color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 + x2 + x3 + x4 + x5 / 2, y = y,
+                  text = paste(testing[,"x5"]),
+                  font = list(family = 'Arial', size = 12,
+                              color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 + x2 + x3 + x4 + x5 + x6 / 2, y = y,
+                  text = paste(testing[,"x6"]),
+                  font = list(family = 'Arial', size = 12,
+                            color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 + x2 + x3 + x4 + x5 + x6 + x7 / 2, y = y,
+                  text = paste(testing[,"x7"]),
+                  font = list(family = 'Arial', size = 12,
+                              color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 / 2, y = y,
+                  text = paste(testing[,"x8"]),
+                  font = list(family = 'Arial', size = 12,
+                              color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 / 2, y = y,
+                  text = paste(testing[,"x9"]),
+                  font = list(family = 'Arial', size = 12,
+                              color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10 / 2, y = y,
+                  text = paste(testing[,"x10"]),
+                  font = list(family = 'Arial', size = 12,
+                              color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  # labeling the first Likert scale (on the top)
+  add_annotations(xref = 'x', yref = 'paper',
+                  x = c(sum(jobassess[1,11]) / 2, sum(jobassess[1,11]) + jobassess[2,11] / 2, sum(jobassess[1:2,11]) + jobassess[3,11] / 2, sum(jobassess[1:3,11]) + jobassess[4,11] / 2, sum(jobassess[1:4,11]) + jobassess[5,11] / 2, sum(jobassess[1:5,11]) + jobassess[6,11] / 2, sum(jobassess[1:6,11]) + jobassess[7,11] / 2, sum(jobassess[1:7,11]) + jobassess[8,11] / 2, sum(jobassess[1:8,11]) + jobassess[9,11] / 2, sum(jobassess[1:9,11]) + jobassess[10,11] / 2),
+                  y = 1.05,
+                  text = top_labels,
+                  font = list(family = 'Arial', size = 12,
+                              color = 'rgb(67, 67, 67)'),
+                  showarrow = FALSE) %>%
+  layout(title = "Job opportunity in Order of Importance <br> 1 is the most important and 10 is the least important<br>(In Percentages)") 
+
+```
+
+
+* Compensation is the most important 
+* Diversity of the company is the least important.
+* Financial Performance of the company comes second in least important which is surprising. Financial performance is very important for the companies to continue with the project. We have to remember that without good financial performance companies wont be able to provide good "Compensation". 
+* Technologies are second most important and Perfessional development is third most important which is not surprising.
+
+
+# What is more important in Job Benefits?
+
+```{r fig.height=8}
+
+jobbenefits <- data[,28:38]
+jobbenefits <- as.data.frame(lapply(jobbenefits, as.integer))
+jobbenefits <- na.omit(jobbenefits)
+
+names(jobbenefits) <- c('Salary',
+       'Stock Options',
+       'Health Insurance',
+       'Parental Leave',
+       'Fitness Benefit',
+       'Retirement Savings Match',
+       'Company Provided Meals or Snacks',
+       'Computer Equipment Allowance',
+       'ChildCare Benefit',
+       "Transportation Benefit",
+       "Education Benefit")
+
+jobbenefited <- jobbenefits %>% 
+  gather(AssessingJobBenefit, HowImportant, 1:11) %>%     
+  group_by(AssessingJobBenefit, HowImportant) %>% summarise(Total = n()) %>%
+  mutate(percentage=paste0(round(Total/sum(Total)*100, 2))) %>% 
+  ungroup() %>% 
+  select(AssessingJobBenefit, HowImportant, percentage) 
+
+jobbenefited$percentage <- as.double(jobbenefited$percentage)
+
+jobbenefited <- jobbenefited %>% 
+             spread(AssessingJobBenefit, percentage)
+
+y <- names(jobbenefited[,2:12])
+
+x1 <- jobbenefited[,2:12] %>% slice(1) %>% unlist(., use.names=FALSE)
+x2 <- jobbenefited[,2:12] %>% slice(2) %>% unlist(., use.names=FALSE)
+x3 <- jobbenefited[,2:12] %>% slice(3) %>% unlist(., use.names=FALSE)
+x4 <- jobbenefited[,2:12] %>% slice(4) %>% unlist(., use.names=FALSE)
+x5 <- jobbenefited[,2:12] %>% slice(5) %>% unlist(., use.names=FALSE)
+x6 <- jobbenefited[,2:12] %>% slice(6) %>% unlist(., use.names=FALSE)
+x7 <- jobbenefited[,2:12] %>% slice(7) %>% unlist(., use.names=FALSE)
+x8 <- jobbenefited[,2:12] %>% slice(8) %>% unlist(., use.names=FALSE)
+x9 <- jobbenefited[,2:12] %>% slice(9) %>% unlist(., use.names=FALSE)
+x10 <- jobbenefited[,2:12] %>% slice(10) %>% unlist(., use.names=FALSE)
+x11 <- jobbenefited[,2:12] %>% slice(11) %>% unlist(., use.names=FALSE)
+
+testing <- data.frame(y, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11)
+
+top_labels <- jobbenefited$HowImportant
+
+plot_ly(testing, x = ~x1, y = ~y, type = 'bar', orientation = 'h', marker = list(color = 'rgb(0, 0, 255)', line = list(color = 'rgb(248, 248, 249)', width = 1))) %>%
+  add_trace(x = ~x2, marker = list(color = 'rgb(13, 13, 242)')) %>%
+  add_trace(x = ~x3, marker = list(color = 'rgb(25, 25, 230)')) %>%
+  add_trace(x = ~x4, marker = list(color = 'rgb(38, 38, 217)')) %>%
+  add_trace(x = ~x5, marker = list(color = 'rgb(57, 57, 198)')) %>%
+  add_trace(x = ~x6, marker = list(color = 'rgb(77, 77, 179)')) %>%
+  add_trace(x = ~x7, marker = list(color = 'rgb(89, 89, 166)')) %>%
+  add_trace(x = ~x8, marker = list(color = 'rgb(102, 102, 153)')) %>%
+  add_trace(x = ~x9, marker = list(color = 'rgb(108, 108, 147)')) %>%
+  add_trace(x = ~x10, marker = list(color = 'rgb(115, 115, 140)')) %>%
+  add_trace(x = ~x11, marker = list(color = 'rgb(128, 128, 128)')) %>%
+  layout(xaxis = list(title = "",
+                      showgrid = FALSE,
+                      showline = FALSE,
+                      showticklabels = FALSE,
+                      zeroline = FALSE,
+                      domain = c(0.15, 1)),
+         yaxis = list(title = "",
+                      showgrid = FALSE,
+                      showline = FALSE,
+                      showticklabels = FALSE,
+                      zeroline = FALSE),
+         barmode = 'stack',
+#         paper_bgcolor = 'rgb(248, 248, 255)', plot_bgcolor = 'rgb(248, 248, 255)',
+         margin = list(l = 50, r = 10, t = 150, b = 30),
+         showlegend = FALSE) %>%
+  # labeling the y-axis
+  add_annotations(xref = 'paper', yref = 'y', x = 0.14, y = y,
+                  xanchor = 'right',
+                  text = y,
+                  font = list(family = 'Arial', size = 12,
+                            color = 'rgb(67, 67, 67)'),
+                  showarrow = FALSE, align = 'right')  %>%
+  # labeling the percentages of each bar (x_axis)
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 / 2, y = y,
+                  text = paste(testing[,"x1"]),
+                  font = list(family = 'Arial', size = 12,
+                            color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 + x2 / 2, y = y,
+                  text = paste(testing[,"x2"]),
+                  font = list(family = 'Arial', size = 12,
+                              color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 + x2 + x3 / 2, y = y,
+                  text = paste(testing[,"x3"]),
+                  font = list(family = 'Arial', size = 12,
+                              color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 + x2 + x3 + x4 / 2, y = y,
+                  text = paste(testing[,"x4"]),
+                  font = list(family = 'Arial', size = 12,
+                              color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 + x2 + x3 + x4 + x5 / 2, y = y,
+                  text = paste(testing[,"x5"]),
+                  font = list(family = 'Arial', size = 12,
+                              color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 + x2 + x3 + x4 + x5 + x6 / 2, y = y,
+                  text = paste(testing[,"x6"]),
+                  font = list(family = 'Arial', size = 12,
+                            color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 + x2 + x3 + x4 + x5 + x6 + x7 / 2, y = y,
+                  text = paste(testing[,"x7"]),
+                  font = list(family = 'Arial', size = 12,
+                              color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 / 2, y = y,
+                  text = paste(testing[,"x8"]),
+                  font = list(family = 'Arial', size = 12,
+                              color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 / 2, y = y,
+                  text = paste(testing[,"x9"]),
+                  font = list(family = 'Arial', size = 12,
+                              color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10 / 2, y = y,
+                  text = paste(testing[,"x10"]),
+                  font = list(family = 'Arial', size = 12,
+                              color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  add_annotations(xref = 'x', yref = 'y',
+                  x = x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10 + x11 / 2, y = y,
+                  text = paste(testing[,"x11"]),
+                  font = list(family = 'Arial', size = 12,
+                              color = 'rgb(248, 248, 255)'),
+                  showarrow = FALSE) %>%
+  # labeling the first Likert scale (on the top)
+  add_annotations(xref = 'x', yref = 'paper',
+                  x = c(sum(jobbenefited[1,12]) / 2, sum(jobbenefited[1,12]) + jobbenefited[2,12] / 2, sum(jobbenefited[1:2,12]) + jobbenefited[3,12] / 2, sum(jobbenefited[1:3,12]) + jobbenefited[4,12] / 2, sum(jobbenefited[1:4,12]) + jobbenefited[5,12] / 2, sum(jobbenefited[1:5,12]) + jobbenefited[6,12] / 2, sum(jobbenefited[1:6,12]) + jobbenefited[7,12] / 2, sum(jobbenefited[1:7,12]) + jobbenefited[8,12] / 2, sum(jobbenefited[1:8,12]) + jobbenefited[9,12] / 2, sum(jobbenefited[1:9,12]) + jobbenefited[10,12] / 2, sum(jobbenefited[1:10,12]) + jobbenefited[11,12] / 2),
+                  y = 1.05,
+                  text = top_labels,
+                  font = list(family = 'Arial', size = 12,
+                              color = 'rgb(67, 67, 67)'),
+                  showarrow = FALSE) %>%
+  layout(title = "Job Benefits in Order of Importance <br> 1 is the most important and 11 is the least important<br>(In Percentages)") 
+
+```
+
+<br>
+
+* 70% of the people think Salary is the top most important job benefit
+* 22% think Childcare benefit is the least most important job benefit. Majority of the responders being young :)
+* Parental leave is also fails to make it to the top of the list.
+
+
+# More to come
