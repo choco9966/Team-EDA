@@ -2,7 +2,7 @@
 ### Author: 김현우,박주연,이주영,이지예,주진영,홍정아
 
 ```
-#private = 0.11381
+#private = 0.11908 약 상위 13%의 성적(3303팀 중 440등)
 library(dplyr)
 library(data.table)
 library(readr)
