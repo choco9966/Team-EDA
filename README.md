@@ -24,5 +24,5 @@ Frame동아리 TEAM-EDA 스터디 자료모음
 |2018.05.18(금)|kaggle - Rossmann-EDA(1)||[발표자료](https://www.kaggle.com/chocozzz/rossmann-eda/notebook)|[준비중](https://blog.naver.com/choco_9966/221236770723)
 |2018.06.01(금)|kaggle - Rossmann-EDA(2)||[발표자료](https://blog.naver.com/choco_9966/221236770723)|[발표자료](https://blog.naver.com/choco_9966/221236770723)
 |2018.06.08(금)|kaggle - Rossmann-EDA(3)||[발표자료](https://blog.naver.com/choco_9966/221236770723)|[발표자료](https://blog.naver.com/choco_9966/221236770723)
-|2018.06.15(금)|kaggle - Rossmann-EDA(4)||[발표자료](https://blog.naver.com/choco_9966/221236770723)|[발표자료](https://blog.naver.com/choco_9966/221236770723)
+|2018.06.15(금)||||
 
