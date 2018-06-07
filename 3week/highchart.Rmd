@@ -18,7 +18,7 @@ output:
 editor_options:   
   chunk_output_type: console  
 ---
-원본:https://www.kaggle.com/umeshnarayanappa/extensive-analysis-stack-overflow-survey-2018를 공부하려고 만든 자료입니다.
+원본:https://www.kaggle.com/umeshnarayanappa/extensive-analysis-stack-overflow-survey-2018 를 공부하려고 만든 자료입니다.
 
 ![](https://camo.githubusercontent.com/0b6fa6fded52f8eaf752f4ec0edb413f61ae9e46/687474703a2f2f7777772e667265656c6f676f766563746f72732e6e65742f77702d636f6e74656e742f75706c6f6164732f323031332f30362f737461636b6f766572666c6f775f6c6f676f2e6a7067)
 
