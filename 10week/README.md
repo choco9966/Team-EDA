@@ -16,11 +16,16 @@
 - 여름방학 계획
 
 ---
+
+`10주차 진행.md`: 10주차 스터디 내용
+
 `전처리.Rmd`: 전처리 code
 
 `final_test.zip`: 전처리 후 test.csv
 
 `final_train.zip` : 전처리 후 train.csv
+
+`XGBOOST.md` : 상위13% xgboost 코드
 
 `회의.md` : 여름방학 진행방법에 대한 회의
 
