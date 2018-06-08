@@ -1,6 +1,5 @@
 # 설명 (Description)
 
-#10주차 진행
 ### 진행순서
 
 -  8주차 정리 
@@ -8,7 +7,7 @@
 -  9주차 외부자료
 
 -  10주차 전처리 
-	- data.table ***big data***처리
+	- data.table ***big data*** 처리
 
 - 9주차 시계열 분석(prophet/ARIMA)
 
