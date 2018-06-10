@@ -21,8 +21,8 @@ Frame동아리 TEAM-EDA 스터디 자료모음
 ||의사결정나무|[README](https://github.com/choco9966/Team-EDA/blob/master/6week/README.md)|[발표자료](https://github.com/choco9966/Team-EDA/blob/master/6week/6%EC%A3%BC%EC%B0%A8%20%EC%9D%B4%EB%A1%A0.md)|[준비중](https://blog.naver.com/choco_9966/221236770723)
 |2018.05.11(금)|SVM - support vectore machine||[준비중](https://blog.naver.com/choco_9966/221236770723)|[준비중](https://blog.naver.com/choco_9966/221236770723)
 |2018.05.12(토)|추후 일정 회의|||
-|2018.05.18(금)|kaggle - Rossmann-EDA(1)|[README]|[발표자료](https://github.com/choco9966/Team-EDA/blob/master/8week/8%EC%A3%BC%EC%B0%A8%20%EC%9D%B4%EB%A1%A0.pdf)|
-|2018.06.01(금)|kaggle - Rossmann-EDA(2)|[README]|[발표자료](https://github.com/choco9966/Team-EDA/blob/master/9week/9week_theory.ipynb)|
-|2018.06.08(금)|kaggle - Rossmann-EDA(3)|[README]|[발표자료](https://github.com/choco9966/Team-EDA/blob/master/10week/10%EC%A3%BC%EC%B0%A8%20%EC%A7%84%ED%96%89.md)|
+|2018.05.18(금)|kaggle - Rossmann-EDA(1)|[README](https://github.com/choco9966/Team-EDA/blob/master/8week/README.md)|[발표자료](https://github.com/choco9966/Team-EDA/blob/master/8week/8%EC%A3%BC%EC%B0%A8%20%EC%9D%B4%EB%A1%A0.pdf)|
+|2018.06.01(금)|kaggle - Rossmann-EDA(2)|[README](https://github.com/choco9966/Team-EDA/blob/master/9week/README.md)|[발표자료](https://github.com/choco9966/Team-EDA/blob/master/9week/9week_theory.ipynb)|
+|2018.06.08(금)|kaggle - Rossmann-EDA(3)|[README](https://github.com/choco9966/Team-EDA/blob/master/10week/README.md)|[발표자료](https://github.com/choco9966/Team-EDA/blob/master/10week/10%EC%A3%BC%EC%B0%A8%20%EC%A7%84%ED%96%89.md)|
 |2018.06.15(금)|여름방학 일정계획|[README](https://github.com/choco9966/Team-EDA/blob/master/10week/%ED%9A%8C%EC%9D%98.md)||
 
