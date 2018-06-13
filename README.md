@@ -16,7 +16,7 @@ Frame동아리 TEAM-EDA 스터디 자료모음
 |2018.04.01(일)|결측치 다루기|[README](https://github.com/choco9966/Team-EDA/blob/master/2week/README.md)|[발표자료](https://github.com/choco9966/Team-EDA/blob/master/2week/2%EC%A3%BC%EC%B0%A8%20%EC%9D%B4%EB%A1%A0.md)|[준비중](https://blog.naver.com/choco_9966/221236770723)
 |2018.04.06(금)|데이터 시각화|[README](https://github.com/choco9966/Team-EDA/blob/master/3week/README.md)|[발표자료](https://github.com/choco9966/Team-EDA/blob/master/3week/3%EC%A3%BC%EC%B0%A8%20%EC%9D%B4%EB%A1%A0.md)|
 |2018.04.13(금)|선형 회귀분석|[README](https://github.com/choco9966/Team-EDA/blob/master/4week/README.md)|[발표자료](https://github.com/choco9966/Team-EDA/blob/master/4week/4week.pdf)|
-|2018.04.27(금)|선형 회귀분석(실습) - House price predict|[README](https://github.com/choco9966/Team-EDA/blob/master/5week/README.md)||[수정중](https://github.com/choco9966/Team-EDA/blob/master/5week/week5.pdf)
+|2018.04.27(금)|선형 회귀분석(실습) - House price predict|[README](https://github.com/choco9966/Team-EDA/blob/master/5week/README.md)||[발표자료](https://github.com/choco9966/Team-EDA/blob/master/5week/week5.pdf)
 |2018.05.04(금)|추후 일정 회의|||
 ||의사결정나무|[README](https://github.com/choco9966/Team-EDA/blob/master/6week/README.md)|[발표자료](https://github.com/choco9966/Team-EDA/blob/master/6week/6%EC%A3%BC%EC%B0%A8%20%EC%9D%B4%EB%A1%A0.md)|[준비중](https://blog.naver.com/choco_9966/221236770723)
 |2018.05.11(금)|SVM - support vectore machine||[발표자료](https://github.com/choco9966/Team-EDA/blob/master/7week/7%EC%A3%BC%EC%B0%A8%20%EC%9D%B4%EB%A1%A0.md)|[준비중](https://blog.naver.com/choco_9966/221236770723)
