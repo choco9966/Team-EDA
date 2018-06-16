@@ -9,6 +9,8 @@ Frame동아리 TEAM-EDA 스터디 자료모음
 데이터를 분석하기에 앞서서 시각화 및 통계적인 분석을 통해 데이터를 가공하고 이해하는것을 주 목적으로 진행하고 실습으로 kaggle 대회를 이용해서 분석까지 진행해 볼 계획인 스터디입니다.
 
 
+2018년도 1학기 : 2018-03-25 ~ 2018-06-15
+
 |요일   |주제   |소개   |이론   |코드   |
 |---|---|---|---|---|
 |2018.03.20(화)|팀결성|
@@ -25,4 +27,11 @@ Frame동아리 TEAM-EDA 스터디 자료모음
 |2018.06.01(금)|kaggle - Rossmann-EDA(2)|[README](https://github.com/choco9966/Team-EDA/blob/master/9week/README.md)|[발표자료](https://github.com/choco9966/Team-EDA/blob/master/9week/9week_theory.ipynb)|
 |2018.06.08(금)|kaggle - Rossmann-EDA(3)|[README](https://github.com/choco9966/Team-EDA/blob/master/10week/README.md)|[발표자료](https://github.com/choco9966/Team-EDA/blob/master/10week/10%EC%A3%BC%EC%B0%A8%20%EC%A7%84%ED%96%89.md)|
 |2018.06.15(금)|여름방학 일정계획|[README](https://github.com/choco9966/Team-EDA/blob/master/10week/%ED%9A%8C%EC%9D%98.md)||
+
+---
+2018년도 여름방학 : 2018-06-15 ~ 
+
+|요일   |주제   |소개   |이론   |코드   |
+|---|---|---|---|---|
+|2018.06.15(금)|여름방학 일정계획||회의결과|
 
