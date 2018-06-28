@@ -10,3 +10,6 @@ https://www.kaggle.com/couyang/taxi-interac-shiny-app-unsupervised-learning
 
 - Deeplearning & correlations
 https://www.kaggle.com/bdtudos/1st-kaggle-deep-learning
+
+# 집가서 오늘 번역할 것
+https://towardsdatascience.com/machine-learning-kaggle-competition-part-two-improving-e5b4d61ab4b8
